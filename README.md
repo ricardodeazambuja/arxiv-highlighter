@@ -7,11 +7,11 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 </p>
 
 Usage example (yup, just click on the link to see a demo):    
-https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/1606.08415.pdf&page=2&rectangle=[g,0.29,0.48,0.70,0.51]&rectangle=[b,0.45,0.17,0.83,0.40]&rectangle=[y,0.45,0.57,0.55,0.60]&rectangle=[o,0.36,0.17,0.43,0.19]&rectangle=[o,0.17,0.19,0.41,0.20]
+https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rectangle=[g,0.79,0.53,0.87,0.55]&rectangle=[b,0.65,0.76,0.77,0.78]&rectangle=[y,0.56,0.55,0.68,0.56]&rectangle=[o,0.53,0.19,0.75,0.34]&rectangle=[r,0.30,0.32,0.49,0.33]&rectangle=[r,0.09,0.33,0.42,0.34]
 
-* `?url=https://arxiv.org/pdf/1606.08415.pdf`: arxiv pdf url
-* `&page=2`: opens the page number 2
-* `&rectangle=[g,0.29,0.48,0.70,0.51]`: overlays a green (`g`) rectangle using coordinates `[xi,yi,xf,yf]` (proportional to the final page size).
+* `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
+* `&page=1`: opens at page 1
+* `&rectangle=[g,0.79,0.53,0.87,0.55]`: overlays a green (`g`) rectangle using coordinates `[xi,yi,xf,yf]` (proportional to the final page size).
 
 ## Using a mouse
 To add a rectangle, simply click and drag. The rectangle will be automatically added to the address bar. Right mouse button changes the current color (the border shows it).
