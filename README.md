@@ -1,6 +1,6 @@
 # arxiv-higjlighter
 
-I read a lot of papers from ArXiv (:heart:), and I was missing a way to share a URL that would show a page highlighting something I consider important. This page will also be useful when you are discussing a paper with someone or pointing where you found that special equation or figure. 
+I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was missing a way to share a URL that would show a page highlighting something I consider important. This page will also be useful when you are discussing a paper with someone or pointing where you found that special equation or figure. 
 
 Usage example:
 `https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/1606.08415.pdf&page=2&rectangle=[r,161,488,331,533]&rectangle=[g,392,488,546,541]`
