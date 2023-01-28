@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PDF highlighter</title>
+</head>
+<body>
+
+<h1 id="main_title">Preparing to load the pdf...</h1>
+
+<div id="container">
+  <canvas id="canvas_page" style="border: 10px solid white; direction: ltr; display: none;"></canvas>
+  <canvas id="canvas_annotation" style="border: 10px solid red; direction: ltr; display: none;"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.2.146/pdf.min.js" integrity="sha512-hA0/Bv8+ywjnycIbT0xuCWB1sRgOzPmksIv4Qfvqv0DOKP02jSor8oHuIKpweUCsxiWGIl+QaV0E82mPQ7/gyw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.2.146/pdf.worker.min.js" integrity="sha512-IEaiZGVIOCKBLN1mWHdKQXt6nsVU/i3ywW94DEc2QzFR+pYVfzAwCHzPyl97P9Nz+ATTmGLIk7uuDBcu3wNGPw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script id="script">
+
+const main_title = document.getElementById('main_title');
+const container = document.getElementById("container");
+const canvas = document.getElementById("canvas_page");
+const annotation = document.getElementById("canvas_annotation");
+const context = canvas.getContext("2d");
+context.canvas.hidden = true;
+
+const ALPHA = 0.3;
+
+canvas_annotation.style.position="absolute";
+canvas_annotation.style.zIndex="99999";
+canvas_annotation.style.top = "0px";
+canvas_annotation.style.left = "0px";
+canvas_annotation.style.margin = "0px";
+canvas_annotation.style.padding =  "0px";
+
+canvas.style.position="absolute";
+canvas.style.zIndex="-1";
+canvas.style.top = "0px";
+canvas.style.left = "0px";
+canvas.style.margin = "0px";
+canvas.style.padding =  "0px";
+ 
+ 
+var origin = null;
+var final = null;
+var all_rectangles = [];
+var page_num;
+
+var canvas_layer = 0;
+
+var rect_colors = {'r':'red', 'g':"green", 'b':"blue", 'y':"yellow", 'o': "orange"};
+const rect_colors_keys = Object.keys(rect_colors);
+var next_color = 0;
+
+
+function create_new_canvas(){
+  canvas_layer += 1;
+  tmp_canvas = document.createElement("canvas");
+  container.appendChild(tmp_canvas);
+  tmp_canvas.width = canvas.width;
+  tmp_canvas.height = canvas.height;
+  tmp_canvas.style.width = canvas.style.width;
+  tmp_canvas.style.height = canvas.style.height;
+  tmp_canvas.style.position="absolute";
+  tmp_canvas.style.zIndex=canvas_layer;
+  tmp_canvas.style.top = "0px";
+  tmp_canvas.style.left = "0px";
+  tmp_canvas.style.margin = "0px";
+  tmp_canvas.style.border = "0px";
+  tmp_canvas.style.padding =  "10px";
+  console.log("Creating canvas number: " + canvas_layer);
+  return tmp_canvas.getContext("2d");
+}
+
+
+function load_rectangles(rectangles){
+  tmp_context = create_new_canvas();
+  for(let rectangle of rectangles){
+    const tmp_color = rect_colors[rectangle.slice(1,-1).split(',')[0]];
+    tmp_context.globalAlpha = ALPHA;
+    tmp_context.fillStyle = tmp_color;
+    const rect_values =  rectangle.slice(1,-1).split(',').slice(1,5).map(Number);
+    tmp_context.beginPath();
+    tmp_context.fillRect(rect_values[0], rect_values[1], rect_values[2] - rect_values[0], rect_values[3] - rect_values[1]); 
+    tmp_context.stroke();
+    console.log("Color: " + tmp_color + " - " + "Values: " + rect_values);
+  }
+}
+
+async function getFromUrl(defaultType = 'application/x-pdf'){
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  var url = urlParams.get('url');
+  const local_file = urlParams.get('local');
+  if (url){
+    url = "https://" + url;
+    console.log("Found url: " + url);
+  } else if (local_file) {
+    url = local_file;
+    console.log("Found local file: " + url);
+  } else {
+    main_title.textContent = "Missing url or local pdf file!";
+    console.log("Missing url or local pdf file!");
+    return;
+  }
+
+  page_num = urlParams.getAll('page') ? urlParams.getAll('page')[0] : 1;
+  all_rectangles = urlParams.getAll('rectangle') ? urlParams.getAll('rectangle') : [];
+  
+  // https://javascript.info/fetch-progress
+  // Step 1: start the fetch and obtain a reader
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (e){
+    main_title.textContent = `Error fetching file ${url}`;
+    console.log(e);
+    return;
+  }
+
+  const fakereader = response.body.getReader();
+  // Step 2: get total length
+  const contentLength = +response.headers.get('Content-Length');
+  // Step 3: read the data
+  let receivedLength = 0; // received that many bytes at the moment
+  let chunks = []; // array of received binary chunks (comprises the body)
+  while(true) {
+    const {done, value} = await fakereader.read();
+    if (done) {
+      break;
+    }
+    chunks.push(value);
+    receivedLength += value.length;
+    main_title.textContent = `Loading pdf (${parseInt(100*(receivedLength/contentLength))}%) - received ${receivedLength} of ${contentLength} bytes`;
+  }
+
+  // Step 4: concatenate chunks into single Uint8Array
+  let chunksAll = new Uint8Array(receivedLength); // (4.1)
+  let position = 0;
+  for(let chunk of chunks) {
+    chunksAll.set(chunk, position); // (4.2)
+    position += chunk.length;
+  }
+
+  // const data = await response.blob();
+  const data = new Blob([chunksAll]);
+  main_title.style.display = "none";
+
+  const reader = new FileReader();
+  reader.readAsDataURL(data);
+  return new Promise(resolve => {
+    reader.onloadend = () => {
+      resolve([reader.result, page_num]);
+    };
+  });
+}
+
+  //
+  // The workerSrc property shall be specified.
+  //
+
+  //
+  // Asynchronous download PDF
+  //
+  (async () => {
+    const urlres = await getFromUrl();
+    if (!urlres){
+      return;
+    }
+    const loadingTask = await pdfjsLib.getDocument(urlres[0]);
+    const pdf = await loadingTask.promise;
+    //
+    // Fetch the page
+    //
+    const page = await pdf.getPage(parseInt(urlres[1]));
+    const scale = 1.5;
+    const viewport = page.getViewport({ scale });
+    // Support HiDPI-screens.
+    const outputScale = window.devicePixelRatio || 1;
+
+    //
+    // Prepare canvas using PDF page dimensions
+    //
+
+    canvas.width = Math.floor(viewport.width * outputScale);
+    canvas.height = Math.floor(viewport.height * outputScale);
+    canvas.style.width = Math.floor(viewport.width) + "px";
+    canvas.style.height = Math.floor(viewport.height) + "px";
+
+    canvas_annotation.width = canvas.width;
+    canvas_annotation.height = canvas.height;
+    canvas_annotation.style.width = canvas.style.width;
+    canvas_annotation.style.height = canvas.style.height;
+
+    const transform = outputScale !== 1 
+      ? [outputScale, 0, 0, outputScale, 0, 0] 
+      : null;
+
+    //
+    // Render PDF page into canvas context
+    //
+    const renderContext = {
+      canvasContext: context,
+      transform,
+      viewport,
+    };
+    page.render(renderContext);
+    context.canvas.hidden = false;
+    canvas.style.display = "block";
+    canvas_annotation.style.display = "block";
+
+    if (all_rectangles.length){
+      load_rectangles(all_rectangles);
+    }
+
+    var tmp_canvas;
+    var tmp_annotation;
+    canvas_annotation.onmousedown = e => { 
+      if (e.button==0){
+        origin = {x: e.offsetX, y: e.offsetY}; 
+        tmp_annotation = create_new_canvas();
+      }else if(e.button==2){
+        //change color
+        next_color++;
+        const tmp_key = rect_colors_keys[(next_color % rect_colors_keys.length + rect_colors_keys.length) % rect_colors_keys.length];
+        canvas_annotation.style.borderColor = rect_colors[tmp_key];
+      }
+
+    };
+    canvas_annotation.onmousemove = e => { 
+      if (e.button!=0) return;
+      if (!!origin) { 
+        if (!!final) { 
+          tmp_annotation.clearRect(0, 0, canvas.width, canvas.height);
+        }
+          tmp_annotation.globalAlpha = ALPHA;
+          tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
+          final = {x: e.offsetX, y: e.offsetY}; 
+          tmp_annotation.beginPath();
+          tmp_annotation.fillRect(origin.x, origin.y, final.x - origin.x, final.y - origin.y); 
+          tmp_annotation.stroke(); 
+        } 
+    };
+    window.onmouseup = e => { 
+      if (e.button!=0) return;
+      if (!!final) { 
+        window.history.pushState("", document.title, window.location.href + "&rectangle=[" +
+                                                          canvas_annotation.style.borderColor[0] + "," +
+                                                          origin.x + "," +
+                                                          origin.y + "," +
+                                                          final.x  + "," +
+                                                          final.y + "]"
+                                                          );
+      }
+      origin = null; 
+      final = null; 
+    };
+
+})();
+</script>
+
+</body>
+</html>
