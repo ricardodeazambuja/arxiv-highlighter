@@ -1,4 +1,4 @@
-# arxiv-higjlighter
+# arxiv-highlighter
 
 I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was missing a way to share a URL that would show a page highlighting something I consider important. This page will also be useful when you are discussing a paper with someone or pointing where you found that special equation or figure. 
 
