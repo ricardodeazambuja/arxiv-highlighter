@@ -3,12 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <title>PDF highlighter</title>
+
+  <style>
+    html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    /* overflow:hidden; */
+    -webkit-overflow-scrolling: touch; 
+    }
+    </style>
+
 </head>
 <body>
 
 <h1 id="main_title">Preparing to load the pdf...</h1>
 
-<div id="container">
+<div id="container" style="width: 100vw; text-align:center;">
   <canvas id="canvas_page" style="border: 10px solid white; direction: ltr; display: none;"></canvas>
   <canvas id="canvas_annotation" style="border: 10px solid red; direction: ltr; display: none;"></canvas>
 </div>
@@ -21,26 +32,25 @@
 const main_title = document.getElementById('main_title');
 const container = document.getElementById("container");
 const canvas = document.getElementById("canvas_page");
-const annotation = document.getElementById("canvas_annotation");
+// const annotation = document.getElementById("canvas_annotation");
 const context = canvas.getContext("2d");
 context.canvas.hidden = true;
 
-const ALPHA = 0.3;
-
-canvas_annotation.style.position="absolute";
-canvas_annotation.style.zIndex="99999";
-canvas_annotation.style.top = "0px";
-canvas_annotation.style.left = "0px";
-canvas_annotation.style.margin = "0px";
-canvas_annotation.style.padding =  "0px";
+var alpha;
 
 canvas.style.position="absolute";
 canvas.style.zIndex="-1";
-canvas.style.top = "0px";
-canvas.style.left = "0px";
-canvas.style.margin = "0px";
+canvas.style.top = "0";
+canvas.style.left = "0";
+canvas.style.margin = "0";
 canvas.style.padding =  "0px";
- 
+
+canvas_annotation.style.position="absolute";
+canvas_annotation.style.zIndex="99999";
+canvas_annotation.style.top = canvas.style.top;
+canvas_annotation.style.left = canvas.style.left;
+canvas_annotation.style.margin = canvas.style.margin;
+canvas_annotation.style.padding = canvas.style.padding;
  
 var origin = null;
 var final = null;
@@ -50,6 +60,14 @@ var canvas_layer = 0;
 var rect_colors = {'r':'red', 'g':"green", 'b':"blue", 'y':"yellow", 'o': "orange"};
 const rect_colors_keys = Object.keys(rect_colors);
 var next_color = 0;
+
+
+var touchstartTime = 0;
+var touchId = null;
+var drawing = false;
+var outputScale = 1;
+var touchholdDelay;
+var changeColor = false;
 
 
 function create_new_canvas(){
@@ -62,11 +80,11 @@ function create_new_canvas(){
   tmp_canvas.style.height = canvas.style.height;
   tmp_canvas.style.position="absolute";
   tmp_canvas.style.zIndex=canvas_layer;
-  tmp_canvas.style.top = "0px";
-  tmp_canvas.style.left = "0px";
-  tmp_canvas.style.margin = "0px";
-  tmp_canvas.style.border = "0px";
-  tmp_canvas.style.padding =  "10px";
+  tmp_canvas.style.top = canvas.style.top;
+  tmp_canvas.style.left = canvas.style.left;
+  tmp_canvas.style.margin = canvas.style.margin;
+  tmp_canvas.style.padding =  canvas.style.padding;
+  tmp_canvas.style.border = canvas.style.border;
   console.log("Creating canvas number: " + canvas_layer);
   return tmp_canvas.getContext("2d");
 }
@@ -76,11 +94,12 @@ function load_rectangles(rectangles){
   tmp_context = create_new_canvas();
   for(let rectangle of rectangles){
     const tmp_color = rect_colors[rectangle.slice(1,-1).split(',')[0]];
-    tmp_context.globalAlpha = ALPHA;
+    tmp_context.globalAlpha = alpha;
     tmp_context.fillStyle = tmp_color;
     const rect_values =  rectangle.slice(1,-1).split(',').slice(1,5).map(Number);
     tmp_context.beginPath();
-    tmp_context.fillRect(canvas.width*rect_values[0], canvas.height*rect_values[1], canvas.width*(rect_values[2] - rect_values[0]), canvas.height*(rect_values[3] - rect_values[1])); 
+    tmp_context.fillRect(canvas.width*rect_values[0]/outputScale, canvas.height*rect_values[1]/outputScale, 
+                         canvas.width*(rect_values[2] - rect_values[0])/outputScale, canvas.height*(rect_values[3] - rect_values[1])/outputScale); 
     tmp_context.stroke();
     console.log("Color: " + tmp_color + " - " + "Values: " + rect_values);
   }
@@ -106,6 +125,17 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
   if (!page_num){
     page_num = 1;
   }
+
+  alpha = urlParams.getAll('alpha')[0];
+  if (!alpha){
+    alpha = 0.3;
+  }
+
+  touchholdDelay = urlParams.getAll('delay')[0];
+  if (!touchholdDelay){
+    touchholdDelay = 300;
+  }
+
 
   all_rectangles = urlParams.getAll('rectangle') ? urlParams.getAll('rectangle') : [];
   
@@ -175,10 +205,13 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     // Fetch the page
     //
     const page = await pdf.getPage(parseInt(urlres[1]));
-    const scale = 1.5;
-    const viewport = page.getViewport({ scale });
+    var desiredWidth = container.clientWidth - canvas.style.border.split(" ")[0].slice(0,-2)*2;
+    var viewport = page.getViewport({ scale: 1, });
+    var scale = desiredWidth / viewport.width;
+    viewport = page.getViewport({ scale: scale, });
+
     // Support HiDPI-screens.
-    const outputScale = window.devicePixelRatio || 1;
+    outputScale = window.devicePixelRatio || 1;
 
     //
     // Prepare canvas using PDF page dimensions
@@ -193,6 +226,7 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     canvas_annotation.height = canvas.height;
     canvas_annotation.style.width = canvas.style.width;
     canvas_annotation.style.height = canvas.style.height;
+    canvas_annotation.style.left = canvas.style.left
 
     const transform = outputScale !== 1 
       ? [outputScale, 0, 0, outputScale, 0, 0] 
@@ -217,7 +251,11 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
 
     var tmp_canvas;
     var tmp_annotation;
-    canvas_annotation.onmousedown = e => { 
+
+    // https://stackoverflow.com/a/48579537/7658422
+    if (window.matchMedia('(hover: hover), (any-hover: hover), (-moz-touch-enabled: 0)').matches) {
+      console.log("Mouse detected...");
+      canvas_annotation.addEventListener('mousedown', function(e) {
       if (e.button==0){
         origin = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
         tmp_annotation = create_new_canvas();
@@ -226,26 +264,29 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
         next_color++;
         const tmp_key = rect_colors_keys[(next_color % rect_colors_keys.length + rect_colors_keys.length) % rect_colors_keys.length];
         canvas_annotation.style.borderColor = rect_colors[tmp_key];
+        console.log("Color changed to " + rect_colors[tmp_key]);
       }
 
-    };
-    canvas_annotation.onmousemove = e => { 
+    }, false);
+
+    canvas_annotation.addEventListener('mousemove', function(e) {
       if (e.button!=0) return;
       if (!!origin) { 
         if (!!final) { 
           tmp_annotation.clearRect(0, 0, canvas.width, canvas.height);
         }
-          tmp_annotation.globalAlpha = ALPHA;
+          tmp_annotation.globalAlpha = alpha;
           tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
           final = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
           tmp_annotation.beginPath();
           tmp_annotation.fillRect(canvas.width*origin.x, canvas.height*origin.y, canvas.width*(final.x - origin.x), canvas.height*(final.y - origin.y)); 
           tmp_annotation.stroke(); 
         } 
-    };
-    window.onmouseup = e => { 
+    }, false);
+
+    window.addEventListener('mouseup', function(e) {
       if (e.button!=0) return;
-      if (!!final) { 
+      if (!!final) {
         window.history.pushState("", document.title, window.location.href + "&rectangle=[" +
                                                           canvas_annotation.style.borderColor[0] + "," +
                                                           origin.x.toFixed(2) + "," +
@@ -256,7 +297,87 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
       }
       origin = null; 
       final = null; 
-    };
+    }, false);
+
+    } else {
+      console.log("Touch detected...");
+      canvas_annotation.addEventListener('touchstart', function(e) {
+      if(e.touches.length == 1) {
+        touchstartTime = new Date().getTime();
+        touchId = e.touches[0].touchId;
+        const offsetX = outputScale*e.touches[0].pageX - 20; //10px border
+        const offsetY = outputScale*e.touches[0].pageY - 20; //10px border
+        origin = {x: outputScale*offsetX/canvas.width, y: outputScale*offsetY/canvas.height};
+        console.log("Touch start!")
+      } else if (e.touches.length == 2) {
+        changeColor = true;
+      }
+    }, false);
+
+    canvas_annotation.addEventListener('touchmove', function(e) {
+      if (e.touches.length == 2) {
+        changeColor = false; // avoid changing color during zoom
+      }
+
+      if(e.touches.length == 1 && touchstartTime > 0 && touchId == e.touches[0].touchId) {
+        if (((new Date().getTime()) - touchstartTime ) > touchholdDelay){
+          e.preventDefault();
+          touchstartTime = 0;
+          drawing = true;
+          tmp_annotation = create_new_canvas();
+          console.log("Starting rectangle...");
+        } else {
+          touchstartTime = 0; // to prevent starting while scrolling, etc
+        }
+      }
+      if (drawing) {
+        e.preventDefault();
+        if (!!origin) { 
+        if (!!final) { 
+          tmp_annotation.clearRect(0, 0, canvas.width, canvas.height);
+        }
+          tmp_annotation.globalAlpha = alpha;
+          tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
+          const offsetX = outputScale*e.touches[0].pageX - 20; //10px border
+          const offsetY = outputScale*e.touches[0].pageY - 20; //10px border
+          final = {x: outputScale*offsetX/canvas.width, y: outputScale*offsetY/canvas.height}; 
+          tmp_annotation.beginPath();
+          tmp_annotation.fillRect(canvas.width*origin.x/outputScale, canvas.height*origin.y/outputScale, 
+                                  canvas.width*(final.x - origin.x)/outputScale, canvas.height*(final.y - origin.y)/outputScale); 
+          tmp_annotation.stroke(); 
+        }
+      }
+    }, false);
+
+    canvas_annotation.addEventListener('touchend', function(e) {
+      if (changeColor) {
+        changeColor = false;
+        //change color
+        next_color++;
+        const tmp_key = rect_colors_keys[(next_color % rect_colors_keys.length + rect_colors_keys.length) % rect_colors_keys.length];
+        canvas_annotation.style.borderColor = rect_colors[tmp_key];
+        console.log("Color changed to " + rect_colors[tmp_key]);
+      }
+
+      if (drawing){
+        e.preventDefault();
+        if (!!final) { 
+          window.history.pushState("", document.title, window.location.href + "&rectangle=[" +
+                                                            canvas_annotation.style.borderColor[0] + "," +
+                                                            origin.x.toFixed(2) + "," +
+                                                            origin.y.toFixed(2) + "," +
+                                                            final.x.toFixed(2)  + "," +
+                                                            final.y.toFixed(2) + "]"
+                                                            );
+        }
+        origin = null; 
+        final = null; 
+        drawing = false;
+        console.log("Rectangle finished!");
+      }
+    }, false);
+
+    }
 
 })();
 </script>
