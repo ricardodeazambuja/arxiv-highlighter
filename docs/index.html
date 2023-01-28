@@ -45,8 +45,6 @@ canvas.style.padding =  "0px";
 var origin = null;
 var final = null;
 var all_rectangles = [];
-var page_num;
-
 var canvas_layer = 0;
 
 var rect_colors = {'r':'red', 'g':"green", 'b':"blue", 'y':"yellow", 'o': "orange"};
@@ -94,7 +92,6 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
   var url = urlParams.get('url');
   const local_file = urlParams.get('local');
   if (url){
-    url = "https://" + url;
     console.log("Found url: " + url);
   } else if (local_file) {
     url = local_file;
@@ -105,7 +102,11 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     return;
   }
 
-  page_num = urlParams.getAll('page') ? urlParams.getAll('page')[0] : 1;
+  var page_num = urlParams.getAll('page')[0];
+  if (!page_num){
+    page_num = 1;
+  }
+
   all_rectangles = urlParams.getAll('rectangle') ? urlParams.getAll('rectangle') : [];
   
   // https://javascript.info/fetch-progress
