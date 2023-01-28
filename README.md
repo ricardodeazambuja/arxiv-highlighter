@@ -6,7 +6,7 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 <img src="https://user-images.githubusercontent.com/6606382/215234922-c68add34-f3b4-4191-96ad-5926161be989.png" width=50% height=50%>
 </p>
 
-Usage example (yup, just click on the link to see a demo):    
+Usage example (yup, just click on the link to see a demo, maybe try a `shift or ctrl + F5` to force reload if the rectangles look crazy):    
 https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rectangle=[g,0.79,0.53,0.87,0.55]&rectangle=[b,0.65,0.76,0.77,0.78]&rectangle=[y,0.56,0.55,0.68,0.56]&rectangle=[o,0.53,0.19,0.75,0.34]&rectangle=[r,0.30,0.32,0.49,0.33]&rectangle=[r,0.09,0.33,0.42,0.34]
 
 * `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
