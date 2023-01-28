@@ -80,7 +80,7 @@ function load_rectangles(rectangles){
     tmp_context.fillStyle = tmp_color;
     const rect_values =  rectangle.slice(1,-1).split(',').slice(1,5).map(Number);
     tmp_context.beginPath();
-    tmp_context.fillRect(rect_values[0], rect_values[1], rect_values[2] - rect_values[0], rect_values[3] - rect_values[1]); 
+    tmp_context.fillRect(canvas.width*rect_values[0], canvas.height*rect_values[1], canvas.width*(rect_values[2] - rect_values[0]), canvas.height*(rect_values[3] - rect_values[1])); 
     tmp_context.stroke();
     console.log("Color: " + tmp_color + " - " + "Values: " + rect_values);
   }
@@ -219,7 +219,7 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     var tmp_annotation;
     canvas_annotation.onmousedown = e => { 
       if (e.button==0){
-        origin = {x: e.offsetX, y: e.offsetY}; 
+        origin = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
         tmp_annotation = create_new_canvas();
       }else if(e.button==2){
         //change color
@@ -237,9 +237,9 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
         }
           tmp_annotation.globalAlpha = ALPHA;
           tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
-          final = {x: e.offsetX, y: e.offsetY}; 
+          final = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
           tmp_annotation.beginPath();
-          tmp_annotation.fillRect(origin.x, origin.y, final.x - origin.x, final.y - origin.y); 
+          tmp_annotation.fillRect(canvas.width*origin.x, canvas.height*origin.y, canvas.width*(final.x - origin.x), canvas.height*(final.y - origin.y)); 
           tmp_annotation.stroke(); 
         } 
     };
@@ -248,10 +248,10 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
       if (!!final) { 
         window.history.pushState("", document.title, window.location.href + "&rectangle=[" +
                                                           canvas_annotation.style.borderColor[0] + "," +
-                                                          origin.x + "," +
-                                                          origin.y + "," +
-                                                          final.x  + "," +
-                                                          final.y + "]"
+                                                          origin.x.toFixed(2) + "," +
+                                                          origin.y.toFixed(2) + "," +
+                                                          final.x.toFixed(2)  + "," +
+                                                          final.y.toFixed(2) + "]"
                                                           );
       }
       origin = null; 
