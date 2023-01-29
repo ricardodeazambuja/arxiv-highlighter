@@ -7,7 +7,7 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 </p>
 
 Usage example (yup, just click on the link to see a demo, maybe try a `shift or ctrl + F5` to force reload if the rectangles look crazy):    
-https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rectangle=[g,0.79,0.53,0.87,0.55]&rectangle=[b,0.65,0.76,0.77,0.78]&rectangle=[y,0.56,0.55,0.68,0.56]&rectangle=[o,0.53,0.19,0.75,0.34]&rectangle=[r,0.30,0.32,0.49,0.33]&rectangle=[r,0.09,0.33,0.42,0.34]
+<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rectangle=[g,0.79,0.53,0.87,0.55]&rectangle=[b,0.65,0.76,0.77,0.78]&rectangle=[y,0.56,0.55,0.68,0.56]&rectangle=[o,0.53,0.19,0.75,0.34]&rectangle=[r,0.30,0.32,0.49,0.33]&rectangle=[r,0.09,0.33,0.42,0.34]">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rectangle=[g,0.79,0.53,0.87,0.55]&rectangle=[b,0.65,0.76,0.77,0.78]&rectangle=[y,0.56,0.55,0.68,0.56]&rectangle=[o,0.53,0.19,0.75,0.34]&rectangle=[r,0.30,0.32,0.49,0.33]&rectangle=[r,0.09,0.33,0.42,0.34]</a>
 
 * `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
 * `&page=1`: opens at page 1
@@ -26,9 +26,9 @@ Share the final URL and the other person will be able to see it too, directly fr
 
 
 ## Extras
-* `?local=filename.pdf`: will serve a local pdf file.
 * `&alpha=0.3`: controls the alpha (transparency), defaults to 0.3.
 * `&delay=300`: controls the amount of time (ms) you touch down to start a new rectangle, defaults to 300.
+* `?url=test.pdf`: you can also access files from your local server.
 
 It works with any pdf file as long as it's hosted in a place that allows Cross-Origin Resource Sharing (CORS).
 

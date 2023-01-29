@@ -109,15 +109,11 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
   var url = urlParams.get('url');
-  const local_file = urlParams.get('local');
   if (url){
     console.log("Found url: " + url);
-  } else if (local_file) {
-    url = local_file;
-    console.log("Found local file: " + url);
   } else {
-    main_title.textContent = "Missing url or local pdf file!";
-    console.log("Missing url or local pdf file!");
+    main_title.textContent = "Missing url!";
+    console.log("Missing url!");
     return;
   }
 
@@ -150,41 +146,49 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     return;
   }
 
-  const fakereader = response.body.getReader();
-  // Step 2: get total length
-  const contentLength = +response.headers.get('Content-Length');
-  // Step 3: read the data
-  let receivedLength = 0; // received that many bytes at the moment
-  let chunks = []; // array of received binary chunks (comprises the body)
-  while(true) {
-    const {done, value} = await fakereader.read();
-    if (done) {
-      break;
+  // https://web.dev/fetch-api-error-handling/
+  // Uses the 'optional chaining' operator
+  if (response?.ok) {
+    const fakereader = response.body.getReader();
+    // Step 2: get total length
+    const contentLength = +response.headers.get('Content-Length');
+    // Step 3: read the data
+    let receivedLength = 0; // received that many bytes at the moment
+    let chunks = []; // array of received binary chunks (comprises the body)
+    while(true) {
+      const {done, value} = await fakereader.read();
+      if (done) {
+        break;
+      }
+      chunks.push(value);
+      receivedLength += value.length;
+      main_title.textContent = `Loading pdf (${parseInt(100*(receivedLength/contentLength))}%) - received ${receivedLength} of ${contentLength} bytes`;
     }
-    chunks.push(value);
-    receivedLength += value.length;
-    main_title.textContent = `Loading pdf (${parseInt(100*(receivedLength/contentLength))}%) - received ${receivedLength} of ${contentLength} bytes`;
+
+    // Step 4: concatenate chunks into single Uint8Array
+    let chunksAll = new Uint8Array(receivedLength); // (4.1)
+    let position = 0;
+    for(let chunk of chunks) {
+      chunksAll.set(chunk, position); // (4.2)
+      position += chunk.length;
+    }
+
+    // const data = await response.blob();
+    const data = new Blob([chunksAll]);
+    main_title.style.display = "none";
+
+    const reader = new FileReader();
+    reader.readAsDataURL(data);
+    return new Promise(resolve => {
+      reader.onloadend = () => {
+        resolve([reader.result, page_num]);
+      };
+    });
+  
+  } else {
+    main_title.textContent = `Error (${response?.status}) fetching file ${url}`;
+    console.log(`HTTP Response Code: ${response?.status}`)
   }
-
-  // Step 4: concatenate chunks into single Uint8Array
-  let chunksAll = new Uint8Array(receivedLength); // (4.1)
-  let position = 0;
-  for(let chunk of chunks) {
-    chunksAll.set(chunk, position); // (4.2)
-    position += chunk.length;
-  }
-
-  // const data = await response.blob();
-  const data = new Blob([chunksAll]);
-  main_title.style.display = "none";
-
-  const reader = new FileReader();
-  reader.readAsDataURL(data);
-  return new Promise(resolve => {
-    reader.onloadend = () => {
-      resolve([reader.result, page_num]);
-    };
-  });
 }
 
   //
