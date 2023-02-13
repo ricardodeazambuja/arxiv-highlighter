@@ -22,6 +22,53 @@
 <div id="container" style="width: 100vw; text-align:center;">
   <canvas id="canvas_page" style="border: 10px solid white; direction: ltr; display: none;"></canvas>
   <canvas id="canvas_annotation" style="border: 10px solid red; direction: ltr; display: none;"></canvas>
+
+<div id="next_page_div" style="
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    top: 0px;
+    right: 0px;
+    z-index: 99999;
+    display: none;
+    ">
+
+    <div id="next_page" style="
+        width:50px;
+        height:50px;
+        background-color:gray;
+        font-size: 200%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        ">></div>
+</div>
+
+<div id="prev_page_div" style="
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    top: 0px;
+    left: 0px;
+    z-index: 99999;
+    display: none;
+    ">
+
+    <div id="prev_page" style="
+        width:50px;
+        height:50px;
+        background-color:gray;
+        /* opacity: 1; */
+        font-size: 200%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        "><</div>
+    </div>
+</div>
+
 </div>
 
 <script src="pdf.min.js"></script>
@@ -34,10 +81,50 @@ window.addEventListener('popstate', function() {
     location.reload(); // easier (url will be updated) than manipulating the canvas...
 }, false);
 
+const next_page = document.getElementById('next_page');
+const next_page_div = document.getElementById('next_page_div');
+const prev_page = document.getElementById('prev_page');
+const prev_page_div = document.getElementById('prev_page_div');
+
+prev_page.addEventListener('click', function() {
+  if (curr_page == 1)
+    return;
+  var tmp_href;
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const tmp_page = urlParams.getAll('page')[0];
+  if (tmp_page){
+    tmp_href = window.location.href.replace(/page=\d*&/, `page=${parseInt(tmp_page)-1}&`);
+  } else {
+    tmp_href = window.location.href.replace(/.pdf&/, `.pdf&page=${parseInt(curr_page)-1}&`);
+  }
+  window.history.pushState("", document.title, tmp_href);
+  location.reload();
+}, false);
+
+
+next_page.addEventListener('click', function() {
+  if (curr_page == total_pages)
+    return;
+  var tmp_href;
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const tmp_page = urlParams.getAll('page')[0];
+  if (tmp_page){
+    tmp_href = window.location.href.replace(/page=\d*&/, `page=${parseInt(tmp_page)+1}&`);
+  } else {
+    tmp_href = window.location.href.replace(/.pdf&/, `.pdf&page=${parseInt(curr_page)+1}&`);
+  }
+  window.history.pushState("", document.title, tmp_href);
+  location.reload();
+
+}, false);
+
+
 const main_title = document.getElementById('main_title');
 const container = document.getElementById("container");
+const canvas_annotation = document.getElementById("canvas_annotation");
 const canvas = document.getElementById("canvas_page");
-// const annotation = document.getElementById("canvas_annotation");
 const context = canvas.getContext("2d");
 context.canvas.hidden = true;
 
@@ -51,7 +138,7 @@ canvas.style.margin = "0";
 canvas.style.padding =  "0px";
 
 canvas_annotation.style.position="absolute";
-canvas_annotation.style.zIndex="99999";
+canvas_annotation.style.zIndex=9999;
 canvas_annotation.style.top = canvas.style.top;
 canvas_annotation.style.left = canvas.style.left;
 canvas_annotation.style.margin = canvas.style.margin;
@@ -73,6 +160,9 @@ var drawing = false;
 var outputScale = 1;
 var touchholdDelay;
 var changeColor = false;
+
+var curr_page = 1;
+var total_pages = 0;
 
 
 function create_new_canvas(){
@@ -98,15 +188,18 @@ function create_new_canvas(){
 function load_rectangles(rectangles){
   tmp_context = create_new_canvas();
   for(let rectangle of rectangles){
-    const tmp_color = rect_colors[rectangle.slice(1,-1).split(',')[0]];
-    tmp_context.globalAlpha = alpha;
-    tmp_context.fillStyle = tmp_color;
-    const rect_values =  rectangle.slice(1,-1).split(',').slice(1,5).map(Number);
-    tmp_context.beginPath();
-    tmp_context.fillRect(canvas.width*rect_values[0], canvas.height*rect_values[1], 
-                         canvas.width*(rect_values[2] - rect_values[0]), canvas.height*(rect_values[3] - rect_values[1])); 
-    tmp_context.stroke();
-    console.log("Color: " + tmp_color + " - " + "Values: " + rect_values);
+    const page_num = parseInt(rectangle.split(',')[0]);
+    if (page_num == curr_page){
+      const tmp_color = rect_colors[rectangle.split(',')[1]];
+      tmp_context.globalAlpha = alpha;
+      tmp_context.fillStyle = tmp_color;
+      const rect_values =  rectangle.split(',').slice(2,6).map(Number);
+      tmp_context.beginPath();
+      tmp_context.fillRect(canvas.width*rect_values[0], canvas.height*rect_values[1], 
+                           canvas.width*(rect_values[2] - rect_values[0]), canvas.height*(rect_values[3] - rect_values[1])); 
+      tmp_context.stroke();
+      console.log("Color: " + tmp_color + " - " + "Values: " + rect_values);
+    }
   }
 }
 
@@ -122,9 +215,9 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     return;
   }
 
-  var page_num = urlParams.getAll('page')[0];
-  if (!page_num){
-    page_num = 1;
+  curr_page = urlParams.getAll('page')[0];
+  if (!curr_page){
+    curr_page = 1;
   }
 
   alpha = urlParams.getAll('alpha')[0];
@@ -186,7 +279,7 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     reader.readAsDataURL(data);
     return new Promise(resolve => {
       reader.onloadend = () => {
-        resolve([reader.result, page_num]);
+        resolve([reader.result, curr_page]);
       };
     });
   
@@ -213,7 +306,16 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     //
     // Fetch the page
     //
-    const page = await pdf.getPage(parseInt(urlres[1]));
+    let page;
+    try {
+      page = await pdf.getPage(parseInt(urlres[1]));
+      total_pages = pdf.numPages;
+    } catch (e){
+      main_title.textContent = `${e} (Page ${urlres[1]})`;
+      main_title.style.display = "block";
+      console.log(e);
+      return;
+    }
     var desiredWidth = container.clientWidth - canvas.style.border.split(" ")[0].slice(0,-2)*2;
     var viewport = page.getViewport({ scale: 1, });
     var scale = desiredWidth / viewport.width;
@@ -253,6 +355,8 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     context.canvas.hidden = false;
     canvas.style.display = "block";
     canvas_annotation.style.display = "block";
+    prev_page_div.style.display = "block";
+    next_page_div.style.display = "block";
 
     if (all_rectangles.length){
       load_rectangles(all_rectangles);
@@ -296,12 +400,13 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     window.addEventListener('mouseup', function(e) {
       if (e.button!=0) return;
       if (!!final) {
-        window.history.pushState("", document.title, window.location.href + "&rectangle=[" +
+        window.history.pushState("", document.title, window.location.href + "&rectangle=" +
+                                                          curr_page + "," +
                                                           canvas_annotation.style.borderColor[0] + "," +
                                                           origin.x.toFixed(2) + "," +
                                                           origin.y.toFixed(2) + "," +
                                                           final.x.toFixed(2)  + "," +
-                                                          final.y.toFixed(2) + "]"
+                                                          final.y.toFixed(2)
                                                           );
       }
       origin = null; 
@@ -371,12 +476,13 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
       if (drawing){
         e.preventDefault();
         if (!!final) { 
-          window.history.pushState("", document.title, window.location.href + "&rectangle=[" +
+          window.history.pushState("", document.title, window.location.href + "&rectangle=" +
+                                                            curr_page + "," +
                                                             canvas_annotation.style.borderColor[0] + "," +
                                                             origin.x.toFixed(2) + "," +
                                                             origin.y.toFixed(2) + "," +
                                                             final.x.toFixed(2)  + "," +
-                                                            final.y.toFixed(2) + "]"
+                                                            final.y.toFixed(2) + ""
                                                             );
         }
         origin = null; 
