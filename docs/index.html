@@ -29,6 +29,11 @@
 
 <script id="script">
 
+// This allows the use of back/forward to undo/redo things
+window.addEventListener('popstate', function() {
+    location.reload(); // easier (url will be updated) than manipulating the canvas...
+}, false);
+
 const main_title = document.getElementById('main_title');
 const container = document.getElementById("container");
 const canvas = document.getElementById("canvas_page");
