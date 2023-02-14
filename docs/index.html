@@ -94,9 +94,9 @@ prev_page.addEventListener('click', function() {
   const urlParams = new URLSearchParams(queryString);
   const tmp_page = urlParams.getAll('page')[0];
   if (tmp_page){
-    tmp_href = window.location.href.replace(/page=\d*&/, `page=${parseInt(tmp_page)-1}&`);
+    tmp_href = window.location.href.replace(/\bpage=\b\d*/, `page=${parseInt(tmp_page)-1}`);
   } else {
-    tmp_href = window.location.href.replace(/.pdf&/, `.pdf&page=${parseInt(curr_page)-1}&`);
+    tmp_href = window.location.href.replace(/\bpdf\b/, `pdf&page=${parseInt(curr_page)-1}`);
   }
   window.history.pushState("", document.title, tmp_href);
   location.reload();
@@ -111,9 +111,9 @@ next_page.addEventListener('click', function() {
   const urlParams = new URLSearchParams(queryString);
   const tmp_page = urlParams.getAll('page')[0];
   if (tmp_page){
-    tmp_href = window.location.href.replace(/page=\d*&/, `page=${parseInt(tmp_page)+1}&`);
+    tmp_href = window.location.href.replace(/\bpage=\b\d*/, `page=${parseInt(tmp_page)+1}`);
   } else {
-    tmp_href = window.location.href.replace(/.pdf&/, `.pdf&page=${parseInt(curr_page)+1}&`);
+    tmp_href = window.location.href.replace(/\bpdf\b/, `pdf&page=${parseInt(curr_page)+1}`);
   }
   window.history.pushState("", document.title, tmp_href);
   location.reload();
@@ -231,7 +231,7 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
   }
 
 
-  all_rectangles = urlParams.getAll('rectangle') ? urlParams.getAll('rectangle') : [];
+  all_rectangles = urlParams.getAll('rect') ? urlParams.getAll('rect') : [];
   
   // https://javascript.info/fetch-progress
   // Step 1: start the fetch and obtain a reader
@@ -400,7 +400,7 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
     window.addEventListener('mouseup', function(e) {
       if (e.button!=0) return;
       if (!!final) {
-        window.history.pushState("", document.title, window.location.href + "&rectangle=" +
+        window.history.pushState("", document.title, window.location.href + "&rect=" +
                                                           curr_page + "," +
                                                           canvas_annotation.style.borderColor[0] + "," +
                                                           origin.x.toFixed(2) + "," +
@@ -476,7 +476,7 @@ async function getFromUrl(defaultType = 'application/x-pdf'){
       if (drawing){
         e.preventDefault();
         if (!!final) { 
-          window.history.pushState("", document.title, window.location.href + "&rectangle=" +
+          window.history.pushState("", document.title, window.location.href + "&rect=" +
                                                             curr_page + "," +
                                                             canvas_annotation.style.borderColor[0] + "," +
                                                             origin.x.toFixed(2) + "," +

@@ -12,11 +12,11 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 </p>
 
 Usage example (yup, just click on the link to see a demo, maybe try a `shift or ctrl + F5` to force reload if the rectangles look crazy):    
-<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rectangle=1,g,0.79,0.53,0.87,0.55&rectangle=1,b,0.65,0.76,0.77,0.78&rectangle=1,y,0.56,0.55,0.68,0.56&rectangle=1,o,0.53,0.19,0.75,0.34&rectangle=1,r,0.30,0.32,0.49,0.33&rectangle=1,r,0.09,0.33,0.42,0.34">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rectangle=1,g,0.79,0.53,0.87,0.55&rectangle=1,b,0.65,0.76,0.77,0.78&rectangle=1,y,0.56,0.55,0.68,0.56&rectangle=1,o,0.53,0.19,0.75,0.34&rectangle=1,r,0.30,0.32,0.49,0.33&rectangle=1,r,0.09,0.33,0.42,0.34</a>
+<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34&rect=1,r,0.30,0.32,0.49,0.33&rect=1,r,0.09,0.33,0.42,0.34">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34&rect=1,r,0.30,0.32,0.49,0.33&rect=1,r,0.09,0.33,0.42,0.34</a>
 
 * `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
 * `&page=1`: starts at page 1
-* `&rectangle=1,g,0.79,0.53,0.87,0.551`: page `1`, overlays a green (`g`) rectangle using coordinates `xi,yi,xf,yf` (proportional to the final page size).
+* `&rect=1,g,0.79,0.53,0.87,0.551`: page `1`, overlays a green (`g`) rectangle using coordinates `xi,yi,xf,yf` (proportional to the final page size).
 
 ## Using a mouse
 To add a rectangle, simply click and drag. The rectangle will be automatically added to the address bar. Right mouse button changes the current color (the border shows it).
