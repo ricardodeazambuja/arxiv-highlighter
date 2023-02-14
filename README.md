@@ -5,6 +5,7 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 **UPDATE 1: Now you can browse (using those brand-new gray buttons on the top) the whole pdf instead of only one page!**     
 **UPDATE 2: The back/forward controls in your browser work as undo/redo!**     
 **UPDATE 3: The square brackets for rectangles were removed and each one starts with the page number where they should appear.**     
+**UPDATE 4: Instead of `rectangle` now it uses `rect` to make it more compact.**     
 
 
 <p align="center">
