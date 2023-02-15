@@ -34,12 +34,18 @@ canvas_annotation.style.left = canvas.style.left;
 canvas_annotation.style.margin = canvas.style.margin;
 canvas_annotation.style.padding = canvas.style.padding;
 
+// It works without the line below, 
+// but the console shows a warning "Deprecated API usage: No "GlobalWorkerOptions.workerSrc" specified."
+// pdf.worker.min.js is quite big, so I don't want to load it if it's not needed!
+// pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.min.js`;
+
 const PDFHighlighterApplication = {
     pdfLoadingTask: null,
     pdfDocument: null,
     origin: null,
     final: null,
-    allRectangles: [],
+    urlRectangles: [],
+    activeCanvases: [],
     canvasLayer: 0,
     next_color: 0,
     
@@ -56,10 +62,32 @@ const PDFHighlighterApplication = {
     alpha: null,
     
 
+checkHoverCanvas(x, y){
+    let topCanvas = null;
+    for(let tmp_canvas of this.activeCanvases){
+        const tmp_ctx = tmp_canvas.getContext("2d");
+        if (tmp_ctx.isPointInPath(tmp_ctx.path, x, y)){
+            if (topCanvas){
+                if (tmp_canvas.zIndex > topCanvas.zIndex){
+                    topCanvas = tmp_canvas;
+                }
+            } else {
+                topCanvas = tmp_canvas;
+            }
+        }
+    }
+    if (topCanvas) {
+        return topCanvas;
+    } else {
+        return;
+    }
+},
+
 canvasBuilder(create=true){
     if (create){
         this.canvasLayer += 1;
         const tmp_canvas = document.createElement("canvas");
+        this.activeCanvases.push(tmp_canvas);
         tmp_canvas.setAttribute("id", "canvas_" + String(this.canvasLayer).padStart(3, '0'));
         container.appendChild(tmp_canvas);
         tmp_canvas.width = canvas.width;
@@ -77,28 +105,39 @@ canvasBuilder(create=true){
         return tmp_canvas.getContext("2d");    
     } else {
         console.log("Deleting canvas number: " + this.canvasLayer);
-        const tmp_canvas = document.getElementById("canvas_" + String(this.canvasLayer).padStart(3, '0'))
+        // const tmp_canvas = document.getElementById("canvas_" + String(this.canvasLayer).padStart(3, '0'))
+        const tmp_canvas = this.activeCanvases.pop();
         tmp_canvas.remove();
         this.canvasLayer -= 1;
         return;
     }
 },
 
+drawRectangle(tmp_context, rectCoord){
+    const tmp_path = new Path2D();
+    tmp_path.rect(rectCoord[0], rectCoord[1], rectCoord[2], rectCoord[3]);
+    tmp_context.fill(tmp_path);
+    tmp_context.path = tmp_path;
+},
 
 loadRectangles(rectangles){
-    let tmp_context = this.canvasBuilder();
     for(let rectangle of rectangles){
       const page_num = parseInt(rectangle.split(',')[0]);
       if (page_num == this.currPage){
+        let tmp_context = this.canvasBuilder();
+
         const tmp_color = RECTCOLOURS[rectangle.split(',')[1]];
         tmp_context.globalAlpha = this.alpha;
         tmp_context.fillStyle = tmp_color;
         const rect_values =  rectangle.split(',').slice(2,6).map(Number);
-        tmp_context.beginPath();
-        tmp_context.fillRect(canvas.width*rect_values[0], canvas.height*rect_values[1], 
-                             canvas.width*(rect_values[2] - rect_values[0]), canvas.height*(rect_values[3] - rect_values[1])); 
-        tmp_context.stroke();
-        console.log("Color: " + tmp_color + " - " + "Values: " + rect_values);
+        const rectCoord = [canvas.width*rect_values[0], 
+                           canvas.height*rect_values[1], 
+                           canvas.width*(rect_values[2] - rect_values[0]), 
+                           canvas.height*(rect_values[3] - rect_values[1])];
+        this.drawRectangle(tmp_context, rectCoord);
+        const note = rectangle.split(',').slice(6);
+        tmp_context.canvas.note = note ? note : "";
+        console.log("Color: " + tmp_color + " - " + "Values: " + rect_values + " - " + "Note: " + tmp_context.canvas.note);
       }
     }
 },
@@ -129,7 +168,7 @@ getFromUrl(){
         this.touchholdDelay = DEFAULT_TOUCH_DELAY;
     }
 
-    this.allRectangles = urlParams.getAll('rect') ? urlParams.getAll('rect') : [];
+    this.urlRectangles = urlParams.getAll('rect') ? urlParams.getAll('rect') : [];
 
     return url;
 },
@@ -184,13 +223,15 @@ setGeneralListeners(){
 setTouchInterface(){
     const self = this;
     var tmp_annotation;
+    var offsetX = null;
+    var offsetY = null;
     console.log("Touch detected...");
     canvas_annotation.addEventListener('touchstart', function(e) {
         if(e.touches.length == 1) {
             self.touchstartTime = new Date().getTime();
             self.touchId = e.touches[0].touchId;
-            const offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
-            const offsetY = self.outputScale*e.touches[0].pageY - 20; //10px border
+            offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
+            offsetY = self.outputScale*e.touches[0].pageY - 20; //10px border
             self.origin = {x: offsetX/canvas.width, y: offsetY/canvas.height};
             console.log("Touch start!")
         } else if (e.touches.length == 2) {
@@ -211,30 +252,39 @@ setTouchInterface(){
                 tmp_annotation = self.canvasBuilder();
                 console.log("Starting rectangle...");
             } else {
+                console.log("False alarm, no rectangle...");
                 self.touchstartTime = 0; // to prevent starting while scrolling, etc
                 self.drawing = false;
             }
         }
+
         if (self.drawing) {
             e.preventDefault();
             if (!!self.origin) { 
                 if (!!self.final) { 
                     tmp_annotation.clearRect(0, 0, canvas.width, canvas.height);
                 }
+                // if (Math.abs(self.final.x-self.origin.x)<0.01) {
+                //     self.final = null;
+                //     return;
+                // }
                 tmp_annotation.globalAlpha = self.alpha;
                 tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
                 const offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
                 const offsetY = self.outputScale*e.touches[0].pageY - 20; //10px border
-                self.final = {x: offsetX/canvas.width, y: offsetY/canvas.height}; 
-                tmp_annotation.beginPath();
-                tmp_annotation.fillRect(canvas.width*self.origin.x, canvas.height*self.origin.y, 
-                                        canvas.width*(self.final.x - self.origin.x), canvas.height*(self.final.y - self.origin.y)); 
-                tmp_annotation.stroke(); 
+                self.final = {x: offsetX/canvas.width, y: offsetY/canvas.height};
+                const rect_values = [canvas.width*self.origin.x, 
+                                     canvas.height*self.origin.y, 
+                                     canvas.width*(self.final.x - self.origin.x), 
+                                     canvas.height*(self.final.y - self.origin.y)];
+                self.drawRectangle(tmp_annotation, rect_values);
+
             }
         }
     }, false);
 
     canvas_annotation.addEventListener('touchend', function(e) {
+        console.log("Touch end!")
         if (self.changeColor) {
             self.changeColor = false;
             self.next_color++;
@@ -245,23 +295,35 @@ setTouchInterface(){
 
         if (self.drawing){
             e.preventDefault();
-            if (!!self.final) { 
+            if (!!self.final) {
+                const note = prompt("Add note?", "");
+                tmp_annotation.canvas.note = note ? note : "";
                 window.history.pushState("", document.title, window.location.href + "&rect=" +
                                                                 self.currPage + "," +
                                                                 canvas_annotation.style.borderColor[0] + "," +
                                                                 self.origin.x.toFixed(2) + "," +
                                                                 self.origin.y.toFixed(2) + "," +
                                                                 self.final.x.toFixed(2)  + "," +
-                                                                self.final.y.toFixed(2) + ""
+                                                                self.final.y.toFixed(2)  + "," +
+                                                                `${tmp_annotation.canvas.note}`
                                                                 );
             } else {
                 // delete canvas
+                console.log("No rectangle, delete canvas!")
                 self.canvasBuilder(false);
             }
             self.origin = null; 
             self.final = null; 
             self.drawing = false;
+        } else {
+            if (offsetX){
+                const tmp_canvas = self.checkHoverCanvas(offsetX, offsetY);
+                if (tmp_canvas){
+                    alert(tmp_canvas.note);
+                }    
+            }
         }
+        offsetX = offsetY = null;
     }, false);
 },
 
@@ -287,33 +349,46 @@ setMouseInterface(){
         if (!!self.origin) { 
             if (!!self.final) { 
                 tmp_annotation.clearRect(0, 0, canvas.width, canvas.height);
+            }            
+            tmp_annotation.globalAlpha = self.alpha;
+            tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
+            self.final = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height};
+            if (Math.abs(self.final.x-self.origin.x)<0.01) {
+                self.final = null;
+                return;
             }
-                tmp_annotation.globalAlpha = self.alpha;
-                tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
-                self.final = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
-                tmp_annotation.beginPath();
-                tmp_annotation.fillRect(canvas.width*self.origin.x, 
-                                        canvas.height*self.origin.y, 
-                                        canvas.width*(self.final.x - self.origin.x), 
-                                        canvas.height*(self.final.y - self.origin.y)); 
-                tmp_annotation.stroke(); 
+            const rect_values = [canvas.width*self.origin.x, 
+                                 canvas.height*self.origin.y, 
+                                 canvas.width*(self.final.x - self.origin.x), 
+                                 canvas.height*(self.final.y - self.origin.y)];
+            self.drawRectangle(tmp_annotation, rect_values);
         } 
     }, false);
 
-    window.addEventListener('mouseup', function(e) {
+    canvas_annotation.addEventListener('mouseup', function(e) {
         if (e.button!=0) return;
         if (!!self.final) {
+            const note = prompt("Add note?", "");
+            tmp_annotation.canvas.note = note ? note : "";
             window.history.pushState("", document.title, window.location.href + "&rect=" +
                                                                 self.currPage + "," +
                                                                 canvas_annotation.style.borderColor[0] + "," +
                                                                 self.origin.x.toFixed(2) + "," +
                                                                 self.origin.y.toFixed(2) + "," +
                                                                 self.final.x.toFixed(2)  + "," +
-                                                                self.final.y.toFixed(2)
+                                                                self.final.y.toFixed(2)  + "," +
+                                                                `${tmp_annotation.canvas.note}`
                                                                 );
         } else {
             // delete canvas
+            console.log("No rectangle, delete canvas!")
             self.canvasBuilder(false);
+
+            const tmp_canvas = self.checkHoverCanvas(e.offsetX, e.offsetY);
+            if (tmp_canvas){
+                alert(tmp_canvas.note);
+            }
+
         }
         self.origin = null; 
         self.final = null; 
@@ -409,8 +484,8 @@ open() {
 
                         self.setGeneralListeners();
 
-                        if (self.allRectangles.length){
-                            self.loadRectangles(self.allRectangles);
+                        if (self.urlRectangles.length){
+                            self.loadRectangles(self.urlRectangles);
                         }
 
                         // https://stackoverflow.com/a/48579537/7658422

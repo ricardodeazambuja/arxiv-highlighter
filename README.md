@@ -6,6 +6,7 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 **UPDATE 2: The back/forward controls in your browser work as undo/redo!**     
 **UPDATE 3: The square brackets for rectangles were removed and each one starts with the page number where they should appear.**     
 **UPDATE 4: Instead of `rectangle` now it uses `rect` to make it more compact.**     
+**UPDATE 5: Now you can add notes!!!!**     
 
 
 <p align="center">
@@ -13,11 +14,11 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 </p>
 
 Usage example (yup, just click on the link to see a demo, maybe try a `shift or ctrl + F5` to force reload if the rectangles look crazy):    
-<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34&rect=1,r,0.30,0.32,0.49,0.33&rect=1,r,0.09,0.33,0.42,0.34">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34&rect=1,r,0.30,0.32,0.49,0.33&rect=1,r,0.09,0.33,0.42,0.34</a>
+<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!</a>
 
 * `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
 * `&page=1`: starts at page 1
-* `&rect=1,g,0.79,0.53,0.87,0.551`: page `1`, overlays a green (`g`) rectangle using coordinates `xi,yi,xf,yf` (proportional to the final page size).
+* `&rect=1,g,0.79,0.53,0.87,0.551,Some random note`: page `1`, overlays a green (`g`) rectangle using coordinates `xi,yi,xf,yf` (proportional to the final page size), and `Some random note` is the note (it could be empty).
 
 ## Using a mouse
 To add a rectangle, simply click and drag. The rectangle will be automatically added to the address bar. Right mouse button changes the current color (the border shows it).
