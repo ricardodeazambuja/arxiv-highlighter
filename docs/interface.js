@@ -56,28 +56,37 @@ const PDFHighlighterApplication = {
     alpha: null,
     
 
-createNewCanvas(){
-    this.canvasLayer += 1;
-    const tmp_canvas = document.createElement("canvas");
-    container.appendChild(tmp_canvas);
-    tmp_canvas.width = canvas.width;
-    tmp_canvas.height = canvas.height;
-    tmp_canvas.style.width = canvas.style.width;
-    tmp_canvas.style.height = canvas.style.height;
-    tmp_canvas.style.position = "absolute";
-    tmp_canvas.style.zIndex = this.canvasLayer;
-    tmp_canvas.style.top = canvas.style.top;
-    tmp_canvas.style.left = canvas.style.left;
-    tmp_canvas.style.margin = canvas.style.margin;
-    tmp_canvas.style.padding =  canvas.style.padding;
-    tmp_canvas.style.border = canvas.style.border;
-    console.log("Creating canvas number: " + this.canvasLayer);
-    return tmp_canvas.getContext("2d");
+canvasBuilder(create=true){
+    if (create){
+        this.canvasLayer += 1;
+        const tmp_canvas = document.createElement("canvas");
+        tmp_canvas.setAttribute("id", "canvas_" + String(this.canvasLayer).padStart(3, '0'));
+        container.appendChild(tmp_canvas);
+        tmp_canvas.width = canvas.width;
+        tmp_canvas.height = canvas.height;
+        tmp_canvas.style.width = canvas.style.width;
+        tmp_canvas.style.height = canvas.style.height;
+        tmp_canvas.style.position = "absolute";
+        tmp_canvas.style.zIndex = this.canvasLayer;
+        tmp_canvas.style.top = canvas.style.top;
+        tmp_canvas.style.left = canvas.style.left;
+        tmp_canvas.style.margin = canvas.style.margin;
+        tmp_canvas.style.padding =  canvas.style.padding;
+        tmp_canvas.style.border = canvas.style.border;
+        console.log("Creating canvas number: " + this.canvasLayer);
+        return tmp_canvas.getContext("2d");    
+    } else {
+        console.log("Deleting canvas number: " + this.canvasLayer);
+        const tmp_canvas = document.getElementById("canvas_" + String(this.canvasLayer).padStart(3, '0'))
+        tmp_canvas.remove();
+        this.canvasLayer -= 1;
+        return;
+    }
 },
 
 
 loadRectangles(rectangles){
-    let tmp_context = this.createNewCanvas();
+    let tmp_context = this.canvasBuilder();
     for(let rectangle of rectangles){
       const page_num = parseInt(rectangle.split(',')[0]);
       if (page_num == this.currPage){
@@ -126,7 +135,7 @@ getFromUrl(){
 },
 
 
-setListeners(){
+setGeneralListeners(){
     const self = this;
     // This allows the use of back/forward to undo/redo things
     window.addEventListener('popstate', function() {
@@ -174,47 +183,48 @@ setListeners(){
 
 setTouchInterface(){
     const self = this;
+    var tmp_annotation;
     console.log("Touch detected...");
     canvas_annotation.addEventListener('touchstart', function(e) {
         if(e.touches.length == 1) {
-            touchstartTime = new Date().getTime();
-            touchId = e.touches[0].touchId;
-            const offsetX = outputScale*e.touches[0].pageX - 20; //10px border
-            const offsetY = outputScale*e.touches[0].pageY - 20; //10px border
+            self.touchstartTime = new Date().getTime();
+            self.touchId = e.touches[0].touchId;
+            const offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
+            const offsetY = self.outputScale*e.touches[0].pageY - 20; //10px border
             self.origin = {x: offsetX/canvas.width, y: offsetY/canvas.height};
             console.log("Touch start!")
         } else if (e.touches.length == 2) {
-            changeColor = true;
+            self.changeColor = true;
         }
     }, false);
 
     canvas_annotation.addEventListener('touchmove', function(e) {
-        var tmp_annotation;
         if (e.touches.length == 2) {
-            changeColor = false; // avoid changing color during zoom
+            self.changeColor = false; // avoid changing color during zoom
         }
 
-        if(e.touches.length == 1 && touchstartTime > 0 && touchId == e.touches[0].touchId) {
-            if (((new Date().getTime()) - touchstartTime ) > touchholdDelay){
+        if(e.touches.length == 1 && self.touchstartTime > 0 && self.touchId == e.touches[0].touchId) {
+            if (((new Date().getTime()) - self.touchstartTime ) > self.touchholdDelay){
                 e.preventDefault();
-                touchstartTime = 0;
-                drawing = true;
-                tmp_annotation = self.createNewCanvas();
+                self.touchstartTime = 0;
+                self.drawing = true;
+                tmp_annotation = self.canvasBuilder();
                 console.log("Starting rectangle...");
             } else {
-                touchstartTime = 0; // to prevent starting while scrolling, etc
+                self.touchstartTime = 0; // to prevent starting while scrolling, etc
+                self.drawing = false;
             }
         }
-        if (drawing) {
+        if (self.drawing) {
             e.preventDefault();
             if (!!self.origin) { 
                 if (!!self.final) { 
                     tmp_annotation.clearRect(0, 0, canvas.width, canvas.height);
                 }
-                tmp_annotation.globalAlpha = alpha;
+                tmp_annotation.globalAlpha = self.alpha;
                 tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
-                const offsetX = outputScale*e.touches[0].pageX - 20; //10px border
-                const offsetY = outputScale*e.touches[0].pageY - 20; //10px border
+                const offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
+                const offsetY = self.outputScale*e.touches[0].pageY - 20; //10px border
                 self.final = {x: offsetX/canvas.width, y: offsetY/canvas.height}; 
                 tmp_annotation.beginPath();
                 tmp_annotation.fillRect(canvas.width*self.origin.x, canvas.height*self.origin.y, 
@@ -225,16 +235,15 @@ setTouchInterface(){
     }, false);
 
     canvas_annotation.addEventListener('touchend', function(e) {
-        if (changeColor) {
-            changeColor = false;
-            //change color
+        if (self.changeColor) {
+            self.changeColor = false;
             self.next_color++;
             const tmp_key = RECTCOLOURS_KEYS[(self.next_color % RECTCOLOURS_KEYS.length + RECTCOLOURS_KEYS.length) % RECTCOLOURS_KEYS.length];
             canvas_annotation.style.borderColor = RECTCOLOURS[tmp_key];
             console.log("Color changed to " + RECTCOLOURS[tmp_key]);
         }
 
-        if (drawing){
+        if (self.drawing){
             e.preventDefault();
             if (!!self.final) { 
                 window.history.pushState("", document.title, window.location.href + "&rect=" +
@@ -245,11 +254,13 @@ setTouchInterface(){
                                                                 self.final.x.toFixed(2)  + "," +
                                                                 self.final.y.toFixed(2) + ""
                                                                 );
+            } else {
+                // delete canvas
+                self.canvasBuilder(false);
             }
             self.origin = null; 
             self.final = null; 
-            drawing = false;
-            console.log("Rectangle finished!");
+            self.drawing = false;
         }
     }, false);
 },
@@ -261,7 +272,7 @@ setMouseInterface(){
     canvas_annotation.addEventListener('mousedown', function(e) {
       if (e.button==0){
           self.origin = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
-          tmp_annotation = self.createNewCanvas();
+          tmp_annotation = self.canvasBuilder();
       }else if(e.button==2){
           //change color
           self.next_color++;
@@ -300,6 +311,9 @@ setMouseInterface(){
                                                                 self.final.x.toFixed(2)  + "," +
                                                                 self.final.y.toFixed(2)
                                                                 );
+        } else {
+            // delete canvas
+            self.canvasBuilder(false);
         }
         self.origin = null; 
         self.final = null; 
@@ -393,7 +407,7 @@ open() {
                         prev_page_div.style.display = "block";
                         next_page_div.style.display = "block";
 
-                        self.setListeners();
+                        self.setGeneralListeners();
 
                         if (self.allRectangles.length){
                             self.loadRectangles(self.allRectangles);
