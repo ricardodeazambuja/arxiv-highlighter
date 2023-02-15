@@ -332,16 +332,16 @@ setMouseInterface(){
     var tmp_annotation;
     console.log("Mouse detected...");
     canvas_annotation.addEventListener('mousedown', function(e) {
-      if (e.button==0){
-          self.origin = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
-          tmp_annotation = self.canvasBuilder();
-      }else if(e.button==2){
-          //change color
-          self.next_color++;
-          const tmp_key = RECTCOLOURS_KEYS[(self.next_color % RECTCOLOURS_KEYS.length + RECTCOLOURS_KEYS.length) % RECTCOLOURS_KEYS.length];
-          canvas_annotation.style.borderColor = RECTCOLOURS[tmp_key];
-          console.log("Color changed to " + RECTCOLOURS[tmp_key]);
-      }
+        if (e.button==0){
+            self.origin = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
+            tmp_annotation = self.canvasBuilder();
+        }else if(e.button==2){
+            //change color
+            self.next_color++;
+            const tmp_key = RECTCOLOURS_KEYS[(self.next_color % RECTCOLOURS_KEYS.length + RECTCOLOURS_KEYS.length) % RECTCOLOURS_KEYS.length];
+            canvas_annotation.style.borderColor = RECTCOLOURS[tmp_key];
+            console.log("Color changed to " + RECTCOLOURS[tmp_key]);
+        }
     }, false);
 
     canvas_annotation.addEventListener('mousemove', function(e) {
@@ -379,7 +379,7 @@ setMouseInterface(){
                                                                 self.final.y.toFixed(2)  + "," +
                                                                 `${tmp_annotation.canvas.note}`
                                                                 );
-        } else {
+        } else if (!!self.origin) {
             // delete canvas
             console.log("No rectangle, delete canvas!")
             self.canvasBuilder(false);
