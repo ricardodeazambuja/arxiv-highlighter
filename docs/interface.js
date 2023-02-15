@@ -191,9 +191,9 @@ setGeneralListeners(){
         const urlParams = new URLSearchParams(queryString);
         const tmp_page = urlParams.getAll('page')[0];
         if (tmp_page){
-            tmp_href = window.location.href.replace(/\bpage=\b\d*/, `page=${parseInt(tmp_page)-1}`);
+            tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)-1}`);
         } else {
-            tmp_href = window.location.href.replace(/\bpdf\b/, `pdf&page=${parseInt(self.currPage)-1}`);
+            tmp_href = window.location.href.replace(/\.pdf/gm, `.pdf&page=${parseInt(self.currPage)-1}`);
         }
         window.history.pushState("", document.title, tmp_href);
         location.reload();
@@ -210,9 +210,9 @@ setGeneralListeners(){
         const urlParams = new URLSearchParams(queryString);
         const tmp_page = urlParams.getAll('page')[0];
         if (tmp_page){
-            tmp_href = window.location.href.replace(/\bpage=\b\d*/, `page=${parseInt(tmp_page)+1}`);
+            tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)+1}`);
         } else {
-            tmp_href = window.location.href.replace(/\bpdf\b/, `pdf&page=${parseInt(self.currPage)+1}`);
+            tmp_href = window.location.href.replace(/\.pdf/gm, `.pdf&page=${parseInt(self.currPage)+1}`);
         }
         window.history.pushState("", document.title, tmp_href);
         location.reload();
