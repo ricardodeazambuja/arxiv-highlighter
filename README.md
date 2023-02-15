@@ -7,6 +7,7 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 **UPDATE 3: The square brackets for rectangles were removed and each one starts with the page number where they should appear.**     
 **UPDATE 4: Instead of `rectangle` now it uses `rect` to make it more compact.**     
 **UPDATE 5: Now you can add notes!!!!**     
+**UPDATE 6: Search a text in individual pages (not perfect, still better than nothing).**     
 
 
 <p align="center">

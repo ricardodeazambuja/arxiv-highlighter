@@ -18,17 +18,20 @@ const prev_page_div = document.getElementById('prev_page_div');
 const canvas_annotation = document.getElementById("canvas_annotation");
 const canvas = document.getElementById("canvas_page");
 const context = canvas.getContext("2d");
-context.canvas.hidden = true;
 
-canvas.style.position="absolute";
-canvas.style.zIndex="-1";
+const textLayer = document.getElementById("svg_container");
+textLayer.style.position = "absolute";
+textLayer.style.zIndex = -1;
+
+canvas.style.position = "absolute";
+canvas.style.zIndex = "-1";
 canvas.style.top = "0";
 canvas.style.left = "0";
 canvas.style.margin = "0";
 canvas.style.padding =  "0px";
 
-canvas_annotation.style.position="absolute";
-canvas_annotation.style.zIndex=9999;
+canvas_annotation.style.position = "absolute";
+canvas_annotation.style.zIndex = 9999;
 canvas_annotation.style.top = canvas.style.top;
 canvas_annotation.style.left = canvas.style.left;
 canvas_annotation.style.margin = canvas.style.margin;
@@ -475,25 +478,38 @@ open() {
                                                 transform,
                                                 viewport,
                                             };
-                        page.render(renderContext);
-                        context.canvas.hidden = false;
-                        canvas.style.display = "block";
-                        canvas_annotation.style.display = "block";
-                        prev_page_div.style.display = "block";
-                        next_page_div.style.display = "block";
+                        const renderTask = page.render(renderContext);
 
-                        self.setGeneralListeners();
+                        renderTask.promise.then(function() {
+                        }).then(function() {
+                            return page.getTextContent();
+                        }).then(function(textContent) {
+                            // building SVG and adding that to the DOM
+                            const svg = buildSVG(viewport, textContent);
+                            textLayer.append(svg);
+                            textLayer.style.display = "block";
+                            canvas.style.display = "block";
+                            canvas_annotation.style.display = "block";
+                            prev_page_div.style.display = "block";
+                            next_page_div.style.display = "block";
+    
+                            self.setGeneralListeners();
+    
+                            if (self.urlRectangles.length){
+                                self.loadRectangles(self.urlRectangles);
+                            }
+    
+                            // https://stackoverflow.com/a/48579537/7658422
+                            if (window.matchMedia('(hover: hover), (any-hover: hover), (-moz-touch-enabled: 0)').matches) {
+                                self.setMouseInterface();
+                            } else {
+                                self.setTouchInterface();
+                            }
 
-                        if (self.urlRectangles.length){
-                            self.loadRectangles(self.urlRectangles);
-                        }
-
-                        // https://stackoverflow.com/a/48579537/7658422
-                        if (window.matchMedia('(hover: hover), (any-hover: hover), (-moz-touch-enabled: 0)').matches) {
-                            self.setMouseInterface();
-                        } else {
-                            self.setTouchInterface();
-                        }
+                            // Release page resources.
+                            page.cleanup();
+    
+                        });
                     },
                     function (exception) {
                         const message = exception && exception.message;
@@ -540,3 +556,34 @@ animationStarted.then(function () {
     main_title.textContent += "done! Now preparing to load the pdf...";
     PDFHighlighterApplication.open();
 });
+
+// https://github.com/mozilla/pdf.js/blob/546902df63b4fcfad419bc8109d128040d7b27ab/examples/text-only/pdf2svg.js
+function buildSVG(viewport, textContent) {
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    // Building SVG with size of the viewport (for simplicity)
+    const svg = document.createElementNS(SVG_NS, "svg:svg");
+    svg.setAttribute("width", viewport.width + "px");
+    svg.setAttribute("height", viewport.height + "px");
+    // items are transformed to have 1px font size
+    svg.setAttribute("font-size", 1);
+  
+    // processing all items
+    textContent.items.forEach(function (textItem) {
+      // we have to take in account viewport transform, which includes scale,
+      // rotation and Y-axis flip, and not forgetting to flip text.
+      const tx = pdfjsLib.Util.transform(
+        pdfjsLib.Util.transform(viewport.transform, textItem.transform),
+        [1, 0, 0, -1, 0, 0]
+      );
+      const style = textContent.styles[textItem.fontName];
+      // adding text element
+      const text = document.createElementNS(SVG_NS, "svg:text");
+      text.setAttribute("transform", "matrix(" + tx.join(" ") + ")");
+      text.setAttribute("font-family", style.fontFamily);
+      text.setAttribute("fill", "rgba(100%, 100%, 100%, 0.0)");
+      // text.setAttribute("opacity", 0.1);
+      text.textContent = textItem.str;
+      svg.append(text);
+    });
+    return svg;
+  }
