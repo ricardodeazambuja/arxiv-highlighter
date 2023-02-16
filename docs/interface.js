@@ -37,10 +37,8 @@ canvas_annotation.style.left = canvas.style.left;
 canvas_annotation.style.margin = canvas.style.margin;
 canvas_annotation.style.padding = canvas.style.padding;
 
-// It works without the line below, 
-// but the console shows a warning "Deprecated API usage: No "GlobalWorkerOptions.workerSrc" specified."
-// pdf.worker.min.js is quite big, so I don't want to load it if it's not needed!
-// pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.min.js`;
+// pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
 const PDFHighlighterApplication = {
     pdfLoadingTask: null,
@@ -445,7 +443,6 @@ open() {
             try {
                 pdfDocument.getPage(parseInt(self.currPage)).then(
                     function(page){
-                        main_title.style.display = "none";
                         var desiredWidth = container.clientWidth - canvas.style.border.split(" ")[0].slice(0,-2)*2;
                         var viewport = page.getViewport({ scale: 1, });
                         var scale = desiredWidth / viewport.width;
@@ -479,19 +476,16 @@ open() {
                                                 viewport,
                                             };
                         const renderTask = page.render(renderContext);
-
+                        main_title.textContent = "Rendering...";
                         renderTask.promise.then(function() {
                         }).then(function() {
+                            main_title.textContent = "Recovering text...";
                             return page.getTextContent();
                         }).then(function(textContent) {
+                            main_title.textContent = "Almost there...";
                             // building SVG and adding that to the DOM
                             const svg = buildSVG(viewport, textContent);
                             textLayer.append(svg);
-                            textLayer.style.display = "block";
-                            canvas.style.display = "block";
-                            canvas_annotation.style.display = "block";
-                            prev_page_div.style.display = "block";
-                            next_page_div.style.display = "block";
     
                             self.setGeneralListeners();
     
@@ -505,6 +499,14 @@ open() {
                             } else {
                                 self.setTouchInterface();
                             }
+
+                            main_title.style.display = "none";
+                            textLayer.style.display = "block";
+                            canvas.style.display = "block";
+                            canvas_annotation.style.display = "block";
+                            prev_page_div.style.display = "block";
+                            next_page_div.style.display = "block";
+
 
                             // Release page resources.
                             page.cleanup();
