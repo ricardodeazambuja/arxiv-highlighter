@@ -6,8 +6,9 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 **UPDATE 2: The back/forward controls in your browser work as undo/redo!**     
 **UPDATE 3: The square brackets for rectangles were removed and each one starts with the page number where they should appear.**     
 **UPDATE 4: Instead of `rectangle` now it uses `rect` to make it more compact.**     
-**UPDATE 5: Now you can add notes!!!!**     
+**UPDATE 5: Now you can add notes!!!! Click on a rectangle to read its note.**     
 **UPDATE 6: Search a text in individual pages (not perfect, still better than nothing).**     
+**UPDATE 7: If the URL use at least one `rect` anywhere, it will default to that, otherwise it will defaul to compressed data in URI friendly format (`cdata` field).**     
 
 
 <p align="center">
@@ -15,7 +16,7 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 </p>
 
 Usage example (yup, just click on the link to see a demo, maybe try a `shift or ctrl + F5` to force reload if the rectangles look crazy):    
-<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!</a>
+<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!</a>
 
 * `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
 * `&page=1`: starts at page 1

@@ -43,9 +43,12 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
 const PDFHighlighterApplication = {
     pdfLoadingTask: null,
     pdfDocument: null,
+    pdfURL: null,
+    baseURL: null,
     origin: null,
     final: null,
     urlRectangles: [],
+    urlCompressedData: null,
     activeCanvases: [],
     canvasLayer: 0,
     next_color: 0,
@@ -62,6 +65,53 @@ const PDFHighlighterApplication = {
 
     alpha: null,
     
+
+updateURL(note){
+    this.getFromUrl();
+    var finalURL = this.baseURL;
+    const alpha = (this.alpha != DEFAULT_ALPHA) ? this.alpha : null;
+    const touchholdDelay = (this.touchholdDelay != DEFAULT_TOUCH_DELAY) ? this.touchholdDelay : null;
+    const currPage = (this.currPage != DEFAULT_INIT_PAGE) ? this.currPage : null;
+
+    if (this.pdfURL)
+        finalURL += "?url=" + this.pdfURL;
+    if (alpha)
+        finalURL += "&alpha=" + alpha;
+    if (touchholdDelay)
+        finalURL += "&delay=" + touchholdDelay;
+    if (currPage)
+        finalURL += "&page=" + currPage;
+    
+    var urlAddition = this.currPage + "," +
+                      canvas_annotation.style.borderColor[0] + "," +
+                      this.origin.x.toFixed(2) + "," +
+                      this.origin.y.toFixed(2) + "," +
+                      this.final.x.toFixed(2)  + "," +
+                      this.final.y.toFixed(2)  + "," +
+                      `${note}`;
+
+    var hasRect = false;
+    if (this.urlRectangles.length){
+        console.log("Found &rect= in the url!");
+        for (let rect of this.urlRectangles){
+            finalURL += "&rect=" + rect;
+        }
+        hasRect = true;
+        finalURL += "&rect=" + urlAddition;
+    }
+    if (!!this.urlCompressedData || !hasRect){
+        console.log("Found &cdata= in the url!");
+        const cdataAddition = LZString.decompressFromEncodedURIComponent(this.urlCompressedData);
+        if (!hasRect){
+            finalURL += "&cdata="+LZString.compressToEncodedURIComponent(cdataAddition + "&" + urlAddition);
+        } else{
+            finalURL += "&cdata="+LZString.compressToEncodedURIComponent(cdataAddition);
+        }
+    }
+
+    console.log(finalURL);
+    window.history.pushState("", document.title, finalURL);  
+},
 
 checkHoverCanvas(x, y){
     let topCanvas = null;
@@ -121,7 +171,11 @@ drawRectangle(tmp_context, rectCoord){
     tmp_context.path = tmp_path;
 },
 
-loadRectangles(rectangles){
+loadRectangles(rectangles=[], cdata=null){
+    if (!!cdata){
+        rectangles = rectangles.concat(LZString.decompressFromEncodedURIComponent(cdata).split("&"));
+    }
+
     for(let rectangle of rectangles){
       const page_num = parseInt(rectangle.split(',')[0]);
       if (page_num == this.currPage){
@@ -144,10 +198,11 @@ loadRectangles(rectangles){
 },
 
 getFromUrl(){
+    this.baseURL = window.location.origin + new URL(window.location.href).pathname;
     const urlParams = new URLSearchParams(window.location.search);
-    const url = urlParams.get('url');
-    if (url){
-        console.log("Found url: " + url);
+    this.pdfURL = urlParams.get('url');
+    if (this.pdfURL){
+        console.log("Found url: " + this.pdfURL);
     } else {
         main_title.textContent = "Missing url!";
         console.log("Missing url!");
@@ -171,7 +226,7 @@ getFromUrl(){
 
     this.urlRectangles = urlParams.getAll('rect') ? urlParams.getAll('rect') : [];
 
-    return url;
+    this.urlCompressedData = urlParams.getAll('cdata')[0];
 },
 
 
@@ -265,10 +320,6 @@ setTouchInterface(){
                 if (!!self.final) { 
                     tmp_annotation.clearRect(0, 0, canvas.width, canvas.height);
                 }
-                // if (Math.abs(self.final.x-self.origin.x)<0.01) {
-                //     self.final = null;
-                //     return;
-                // }
                 tmp_annotation.globalAlpha = self.alpha;
                 tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
                 const offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
@@ -297,30 +348,28 @@ setTouchInterface(){
         if (self.drawing){
             e.preventDefault();
             if (!!self.final) {
-                const note = prompt("Add note?", "");
-                tmp_annotation.canvas.note = note ? note : "";
-                window.history.pushState("", document.title, window.location.href + "&rect=" +
-                                                                self.currPage + "," +
-                                                                canvas_annotation.style.borderColor[0] + "," +
-                                                                self.origin.x.toFixed(2) + "," +
-                                                                self.origin.y.toFixed(2) + "," +
-                                                                self.final.x.toFixed(2)  + "," +
-                                                                self.final.y.toFixed(2)  + "," +
-                                                                `${tmp_annotation.canvas.note}`
-                                                                );
+                const delayedPrompt = () => {
+                    const note = prompt("Add note?", "").replace(/\&/gm,"%26");
+                    tmp_annotation.canvas.note = note ? note : "";
+                    self.updateURL(tmp_annotation.canvas.note);
+                    self.origin = null; 
+                    self.final = null; 
+                };
+                setTimeout(delayedPrompt, 10);
             } else {
                 // delete canvas
                 console.log("No rectangle, delete canvas!")
                 self.canvasBuilder(false);
+                self.origin = null; 
+                self.final = null; 
             }
-            self.origin = null; 
-            self.final = null; 
             self.drawing = false;
         } else {
             if (offsetX){
                 const tmp_canvas = self.checkHoverCanvas(offsetX, offsetY);
                 if (tmp_canvas){
-                    alert(tmp_canvas.note);
+                    const delayedAlert = () => {alert(tmp_canvas.note);};
+                    setTimeout(delayedAlert, 10);
                 }    
             }
         }
@@ -369,17 +418,14 @@ setMouseInterface(){
     canvas_annotation.addEventListener('mouseup', function(e) {
         if (e.button!=0) return;
         if (!!self.final) {
-            const note = prompt("Add note?", "");
-            tmp_annotation.canvas.note = note ? note : "";
-            window.history.pushState("", document.title, window.location.href + "&rect=" +
-                                                                self.currPage + "," +
-                                                                canvas_annotation.style.borderColor[0] + "," +
-                                                                self.origin.x.toFixed(2) + "," +
-                                                                self.origin.y.toFixed(2) + "," +
-                                                                self.final.x.toFixed(2)  + "," +
-                                                                self.final.y.toFixed(2)  + "," +
-                                                                `${tmp_annotation.canvas.note}`
-                                                                );
+            const delayedPrompt = () => {
+                const note = prompt("Add note?", "").replace(/\&/gm,"%26");
+                tmp_annotation.canvas.note = note ? note : "";
+                self.updateURL(tmp_annotation.canvas.note);
+                self.origin = null; 
+                self.final = null; 
+            };
+            setTimeout(delayedPrompt, 10);
         } else if (!!self.origin) {
             // delete canvas
             console.log("No rectangle, delete canvas!")
@@ -387,12 +433,11 @@ setMouseInterface(){
 
             const tmp_canvas = self.checkHoverCanvas(e.offsetX, e.offsetY);
             if (tmp_canvas){
-                alert(tmp_canvas.note);
+                const delayedAlert = () => {alert(tmp_canvas.note);};
+                setTimeout(delayedAlert, 10);
             }
-
+            self.origin = null; 
         }
-        self.origin = null; 
-        self.final = null; 
     }, false);
 },
 
@@ -425,8 +470,8 @@ open() {
         );
     }
 
-    const url = this.getFromUrl();
-    const loadingTask = pdfjsLib.getDocument(url);
+    this.getFromUrl();
+    const loadingTask = pdfjsLib.getDocument(this.pdfURL);
 
     this.pdfLoadingTask = loadingTask;
 
@@ -489,9 +534,7 @@ open() {
     
                             self.setGeneralListeners();
     
-                            if (self.urlRectangles.length){
-                                self.loadRectangles(self.urlRectangles);
-                            }
+                            self.loadRectangles(self.urlRectangles, self.urlCompressedData);
     
                             // https://stackoverflow.com/a/48579537/7658422
                             if (window.matchMedia('(hover: hover), (any-hover: hover), (-moz-touch-enabled: 0)').matches) {
