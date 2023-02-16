@@ -6,6 +6,7 @@ const RECTCOLOURS_KEYS = Object.keys(RECTCOLOURS);
 const DEFAULT_TOUCH_DELAY = 300;
 const DEFAULT_ALPHA = 0.3;
 const DEFAULT_INIT_PAGE = 1;
+const DEFAULT_MIN_MOV = 0.01;
 
 const main_title = document.getElementById('main_title');
 const container = document.getElementById("container");
@@ -349,8 +350,8 @@ setTouchInterface(){
             e.preventDefault();
             if (!!self.final) {
                 const delayedPrompt = () => {
-                    const note = prompt("Add note?", "").replace(/\&/gm,"%26");
-                    tmp_annotation.canvas.note = note ? note : "";
+                    const note = prompt("Add note?", "")
+                    tmp_annotation.canvas.note = note ? note.replace(/\&/gm,"%26") : "";
                     self.updateURL(tmp_annotation.canvas.note);
                     self.origin = null; 
                     self.final = null; 
@@ -403,7 +404,8 @@ setMouseInterface(){
             tmp_annotation.globalAlpha = self.alpha;
             tmp_annotation.fillStyle = canvas_annotation.style.borderColor;
             self.final = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height};
-            if (Math.abs(self.final.x-self.origin.x)<0.01) {
+            if ((Math.abs(self.final.x-self.origin.x) < DEFAULT_MIN_MOV) && 
+                (Math.abs(self.final.y-self.origin.y) < DEFAULT_MIN_MOV)) {
                 self.final = null;
                 return;
             }
@@ -419,8 +421,8 @@ setMouseInterface(){
         if (e.button!=0) return;
         if (!!self.final) {
             const delayedPrompt = () => {
-                const note = prompt("Add note?", "").replace(/\&/gm,"%26");
-                tmp_annotation.canvas.note = note ? note : "";
+                const note = prompt("Add note?", "")
+                tmp_annotation.canvas.note = note ? note.replace(/\&/gm,"%26") : "";
                 self.updateURL(tmp_annotation.canvas.note);
                 self.origin = null; 
                 self.final = null; 
