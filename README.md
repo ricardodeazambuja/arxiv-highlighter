@@ -12,7 +12,7 @@ Usage example (yup, just click on the link to see a demo, maybe try a `shift or 
 
 * `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
 * `&page=1`: starts at page 1
-* `&cdata=...`: 
+* `&cdata=...`: compressed data in URI friendly format
 
 ## Using a mouse
 To add an annotation (rectangle), simply click and drag. A prompt box will allow you to add a note, otherwise just close it. The annotation will be automatically added to the address bar. Click on a rectangle to see the note. Right-click on a rectangle to delete it. Right-click everywhere else to change the current color (the border shows it).
