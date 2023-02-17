@@ -7,6 +7,7 @@ const DEFAULT_TOUCH_DELAY = 300;
 const DEFAULT_ALPHA = 0.3;
 const DEFAULT_INIT_PAGE = 1;
 const DEFAULT_MIN_MOV = 0.01;
+const DEFAULT_TEXT_SEARCH = true;
 
 const main_title = document.getElementById('main_title');
 const container = document.getElementById("container");
@@ -38,7 +39,7 @@ canvas_annotation.style.left = canvas.style.left;
 canvas_annotation.style.margin = canvas.style.margin;
 canvas_annotation.style.padding = canvas.style.padding;
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.min.js`;
 // pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
 const PDFHighlighterApplication = {
@@ -48,7 +49,6 @@ const PDFHighlighterApplication = {
     baseURL: null,
     origin: null,
     final: null,
-    urlRectangles: [],
     urlCompressedData: null,
     activeCanvases: [],
     canvasLayer: 0,
@@ -67,12 +67,12 @@ const PDFHighlighterApplication = {
     alpha: null,
     
 
-updateURL(note){
-    this.getFromUrl();
+updateURL(note=null, removeIdx=-1){
     var finalURL = this.baseURL;
     const alpha = (this.alpha != DEFAULT_ALPHA) ? this.alpha : null;
     const touchholdDelay = (this.touchholdDelay != DEFAULT_TOUCH_DELAY) ? this.touchholdDelay : null;
     const currPage = (this.currPage != DEFAULT_INIT_PAGE) ? this.currPage : null;
+    const search = (this.search != DEFAULT_TEXT_SEARCH) ? this.search : null;
 
     if (this.pdfURL)
         finalURL += "?url=" + this.pdfURL;
@@ -80,37 +80,47 @@ updateURL(note){
         finalURL += "&alpha=" + alpha;
     if (touchholdDelay)
         finalURL += "&delay=" + touchholdDelay;
+    if (search!=null)
+        finalURL += "&search=" + search;
     if (currPage)
         finalURL += "&page=" + currPage;
     
-    var urlAddition = this.currPage + "," +
-                      canvas_annotation.style.borderColor[0] + "," +
-                      this.origin.x.toFixed(2) + "," +
-                      this.origin.y.toFixed(2) + "," +
-                      this.final.x.toFixed(2)  + "," +
-                      this.final.y.toFixed(2)  + "," +
-                      `${note}`;
+    var urlAddition = [];
+    if (note != null){
+        urlAddition = [this.currPage + "," +
+                       canvas_annotation.style.borderColor[0] + "," +
+                       this.origin.x.toFixed(2) + "," +
+                       this.origin.y.toFixed(2) + "," +
+                       this.final.x.toFixed(2)  + "," +
+                       this.final.y.toFixed(2)  + "," +
+                       `${note}`];
 
-    var hasRect = false;
-    if (this.urlRectangles.length){
-        console.log("Found &rect= in the url!");
-        for (let rect of this.urlRectangles){
-            finalURL += "&rect=" + rect;
-        }
-        hasRect = true;
-        finalURL += "&rect=" + urlAddition;
-    }
-    if (!!this.urlCompressedData || !hasRect){
-        console.log("Found &cdata= in the url!");
-        const cdataAddition = LZString.decompressFromEncodedURIComponent(this.urlCompressedData);
-        if (!hasRect){
-            finalURL += "&cdata="+LZString.compressToEncodedURIComponent(cdataAddition + "&" + urlAddition);
-        } else{
-            finalURL += "&cdata="+LZString.compressToEncodedURIComponent(cdataAddition);
-        }
     }
 
-    console.log(finalURL);
+    var dataFromUrl = [];
+    if (!!this.urlCompressedData){
+        dataFromUrl = LZString.decompressFromEncodedURIComponent(this.urlCompressedData).split("&");
+        if (removeIdx!=-1){
+            let activeRectangle = 0
+            for (let i of dataFromUrl.keys()){
+                if (dataFromUrl[i][0]==this.currPage){
+                    if (activeRectangle==removeIdx){
+                        dataFromUrl.splice(i,1);
+                        break;
+                    }
+                    activeRectangle++;
+                }
+            }
+        }
+    }
+
+    dataFromUrl = dataFromUrl.concat(urlAddition);
+
+    this.urlCompressedData = LZString.compressToEncodedURIComponent(dataFromUrl.join("&"));
+    if (this.urlCompressedData=='Q')
+        this.urlCompressedData = null;
+
+    finalURL += "&cdata="+this.urlCompressedData;
     window.history.pushState("", document.title, finalURL);  
 },
 
@@ -157,7 +167,6 @@ canvasBuilder(create=true){
         return tmp_canvas.getContext("2d");    
     } else {
         console.log("Deleting canvas number: " + this.canvasLayer);
-        // const tmp_canvas = document.getElementById("canvas_" + String(this.canvasLayer).padStart(3, '0'))
         const tmp_canvas = this.activeCanvases.pop();
         tmp_canvas.remove();
         this.canvasLayer -= 1;
@@ -172,26 +181,27 @@ drawRectangle(tmp_context, rectCoord){
     tmp_context.path = tmp_path;
 },
 
-loadRectangles(rectangles=[], cdata=null){
-    if (!!cdata){
-        rectangles = rectangles.concat(LZString.decompressFromEncodedURIComponent(cdata).split("&"));
-    }
+loadRectangles(){
+    var rectangles = []
+    if (!!this.urlCompressedData)
+        rectangles = LZString.decompressFromEncodedURIComponent(this.urlCompressedData).split("&");
 
-    for(let rectangle of rectangles){
-      const page_num = parseInt(rectangle.split(',')[0]);
+    for(let i of rectangles.keys()){
+      const rectangle = rectangles[i].split(',');
+      const page_num = parseInt(rectangle[0]);
       if (page_num == this.currPage){
         let tmp_context = this.canvasBuilder();
 
-        const tmp_color = RECTCOLOURS[rectangle.split(',')[1]];
+        const tmp_color = RECTCOLOURS[rectangle[1]];
         tmp_context.globalAlpha = this.alpha;
         tmp_context.fillStyle = tmp_color;
-        const rect_values =  rectangle.split(',').slice(2,6).map(Number);
+        const rect_values =  rectangle.slice(2,6).map(Number);
         const rectCoord = [canvas.width*rect_values[0], 
                            canvas.height*rect_values[1], 
                            canvas.width*(rect_values[2] - rect_values[0]), 
                            canvas.height*(rect_values[3] - rect_values[1])];
         this.drawRectangle(tmp_context, rectCoord);
-        const note = rectangle.split(',').slice(6);
+        const note = rectangle.slice(6);
         tmp_context.canvas.note = note ? note : "";
         console.log("Color: " + tmp_color + " - " + "Values: " + rect_values + " - " + "Note: " + tmp_context.canvas.note);
       }
@@ -220,12 +230,17 @@ getFromUrl(){
         this.alpha = DEFAULT_ALPHA;
     }
 
+    this.search = urlParams.getAll('search')[0];
+    if (this.search==null){
+        this.search = DEFAULT_TEXT_SEARCH;
+    } else {
+        this.search = this.search == 'true';
+    }
+
     this.touchholdDelay = urlParams.getAll('delay')[0];
     if (!this.touchholdDelay){
         this.touchholdDelay = DEFAULT_TOUCH_DELAY;
     }
-
-    this.urlRectangles = urlParams.getAll('rect') ? urlParams.getAll('rect') : [];
 
     this.urlCompressedData = urlParams.getAll('cdata')[0];
 },
@@ -292,7 +307,22 @@ setTouchInterface(){
             self.origin = {x: offsetX/canvas.width, y: offsetY/canvas.height};
             console.log("Touch start!")
         } else if (e.touches.length == 2) {
-            self.changeColor = true;
+            const offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
+            const offsetY = self.outputScale*e.touches[0].pageY - 20; //10px border
+            const tmp_canvas = self.checkHoverCanvas(offsetX, offsetY);
+            if (tmp_canvas) {
+                for(let i of self.activeCanvases.keys()){
+                    if(tmp_canvas==self.activeCanvases[i]){
+                        console.log("Removing canvas index: " + i);
+                        tmp_canvas.remove();
+                        self.activeCanvases.splice(i, 1);
+                        self.updateURL(null, i);
+                        break;
+                    }
+                }
+            } else {
+                self.changeColor = true;
+            }
         }
     }, false);
 
@@ -387,11 +417,24 @@ setMouseInterface(){
             self.origin = {x: e.offsetX/canvas.width, y: e.offsetY/canvas.height}; 
             tmp_annotation = self.canvasBuilder();
         }else if(e.button==2){
-            //change color
-            self.next_color++;
-            const tmp_key = RECTCOLOURS_KEYS[(self.next_color % RECTCOLOURS_KEYS.length + RECTCOLOURS_KEYS.length) % RECTCOLOURS_KEYS.length];
-            canvas_annotation.style.borderColor = RECTCOLOURS[tmp_key];
-            console.log("Color changed to " + RECTCOLOURS[tmp_key]);
+            const tmp_canvas = self.checkHoverCanvas(e.offsetX, e.offsetY);
+            if (tmp_canvas) {
+                for(let i of self.activeCanvases.keys()){
+                    if(tmp_canvas==self.activeCanvases[i]){
+                        console.log("Removing canvas index:", i);
+                        tmp_canvas.remove();
+                        self.activeCanvases.splice(i, 1);
+                        self.updateURL(null, i);
+                        break;
+                    }
+                }
+            } else {
+                //change color
+                self.next_color++;
+                const tmp_key = RECTCOLOURS_KEYS[(self.next_color % RECTCOLOURS_KEYS.length + RECTCOLOURS_KEYS.length) % RECTCOLOURS_KEYS.length];
+                canvas_annotation.style.borderColor = RECTCOLOURS[tmp_key];
+                console.log("Color changed to " + RECTCOLOURS[tmp_key]);
+            }
         }
     }, false);
 
@@ -526,17 +569,23 @@ open() {
                         main_title.textContent = "Rendering...";
                         renderTask.promise.then(function() {
                         }).then(function() {
-                            main_title.textContent = "Recovering text...";
-                            return page.getTextContent();
+                            if (self.search){
+                                main_title.textContent = "Recovering text...";
+                                return page.getTextContent();    
+                            } else {
+                                return;
+                            }
                         }).then(function(textContent) {
                             main_title.textContent = "Almost there...";
-                            // building SVG and adding that to the DOM
-                            const svg = buildSVG(viewport, textContent);
-                            textLayer.append(svg);
+                            if (!!textContent){
+                                // building SVG and adding that to the DOM
+                                const svg = buildSVG(viewport, textContent);
+                                textLayer.append(svg);
+                            }
     
                             self.setGeneralListeners();
     
-                            self.loadRectangles(self.urlRectangles, self.urlCompressedData);
+                            self.loadRectangles();
     
                             // https://stackoverflow.com/a/48579537/7658422
                             if (window.matchMedia('(hover: hover), (any-hover: hover), (-moz-touch-enabled: 0)').matches) {

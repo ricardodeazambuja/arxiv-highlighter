@@ -1,14 +1,6 @@
 # arxiv-highlighter
 
-I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was missing a way to share a URL that would show a whole pdf highlighting something I consider important. This will also be useful when you are discussing a paper with someone or pointing where you found that special equation or figure. 
-
-**UPDATE 1: Now you can browse (using those brand-new gray buttons on the top) the whole pdf instead of only one page!**     
-**UPDATE 2: The back/forward controls in your browser work as undo/redo!**     
-**UPDATE 3: The square brackets for rectangles were removed and each one starts with the page number where they should appear.**     
-**UPDATE 4: Instead of `rectangle` now it uses `rect` to make it more compact.**     
-**UPDATE 5: Now you can add notes!!!! Click on a rectangle to read its note.**     
-**UPDATE 6: Search a text in individual pages (not perfect, still better than nothing).**     
-**UPDATE 7: If the URL use at least one `rect` anywhere, it will default to that, otherwise it will defaul to compressed data in URI friendly format (`cdata` field).**     
+I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was missing a way to share a URL that would show a whole pdf highlighting, with or without notes, something I consider important. This will also be useful when you are discussing a paper with someone or pointing where you found that special equation or figure. 
 
 
 <p align="center">
@@ -16,20 +8,21 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 </p>
 
 Usage example (yup, just click on the link to see a demo, maybe try a `shift or ctrl + F5` to force reload if the rectangles look crazy):    
-<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&rect=1,g,0.79,0.53,0.87,0.55,pay%20attention%20to%20this&rect=1,b,0.65,0.76,0.77,0.78&rect=1,y,0.56,0.55,0.68,0.56&rect=1,o,0.53,0.19,0.75,0.34,nice%20picture!&rect=1,r,0.08,0.32,0.49,0.34,Great%20idea!</a>
+<a href="https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA">https://ricardodeazambuja.com/arxiv-highlighter/?url=https://arxiv.org/pdf/2103.04423.pdf&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA</a>
 
 * `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
 * `&page=1`: starts at page 1
-* `&rect=1,g,0.79,0.53,0.87,0.551,Some random note`: page `1`, overlays a green (`g`) rectangle using coordinates `xi,yi,xf,yf` (proportional to the final page size), and `Some random note` is the note (it could be empty).
+* `&cdata=...`: 
 
 ## Using a mouse
-To add a rectangle, simply click and drag. The rectangle will be automatically added to the address bar. Right mouse button changes the current color (the border shows it).
+To add an annotation (rectangle), simply click and drag. A prompt box will allow you to add a note, otherwise just close it. The annotation will be automatically added to the address bar. Click on a rectangle to see the note. Right-click on a rectangle to delete it. Right-click everywhere else to change the current color (the border shows it).
 
 ## Using a touch screen
-To add a rectangle, simply touch and hold for 300ms (default), and drag. The rectangle will be automatically added to the address bar. Two-finger touch changes the current color (the border shows it).
+To add an annotation (rectangle), simply touch and hold for 300ms (default), and drag. The rectangle will be automatically added to the address bar. One-finger touch on a rectangle will show the note. Two-finger touch on rectangle will delete it. Two-finger touch everywhere else to change the current color (the border shows it).
 
-## Remove or edit the annotations
-All the rectangles are added to the URL in the address bar, so you can manually edit it when needed.     
+## Change the pdf page
+Just click on the gray boxes on the left (`<`) / right (`>`) rendered over the pdf. You can also change the value (`page`) in the URL and reload.
+
 ## How to share or store your annotations
 Share the final URL and the other person will be able to see it too, directly from the web browser, no servers involved.
 
@@ -37,11 +30,12 @@ Share the final URL and the other person will be able to see it too, directly fr
 ## Extras
 * `&alpha=0.3`: controls the alpha (transparency), defaults to 0.3.
 * `&delay=300`: controls the amount of time (ms) you touch down to start a new rectangle, defaults to 300.
+* `&search=false`: enable/disable searchable text (mobile browsers seem to struggle with the big svg generated).
 * `?url=test.pdf`: you can also access files from your local server.
 
 It works with any pdf file as long as it's hosted in a place that allows Cross-Origin Resource Sharing (CORS).
 
 ## TODO
 1. Test it using other browsers, operating systems, etc... because I only tested on Chrome-Linux and Safari-iOS.
-2. Add a way to remove rectangles without having to edit the URL.
+2. Solve the problems with the touch interface when zooming in/out.
 3. Improve the code because it's a terrible mess!
