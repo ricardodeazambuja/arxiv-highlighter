@@ -39,3 +39,4 @@ It works with any pdf file as long as it's hosted in a place that allows Cross-O
 1. Test it using other browsers, operating systems, etc... because I only tested on Chrome-Linux and Safari-iOS.
 2. Solve the problems with the touch interface when zooming in/out.
 3. Improve the code because it's a terrible mess!
+4. Currently, although the server doesn't need the information, the URL is sending it. I need to find a way to keep the info only for the client...
