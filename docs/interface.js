@@ -75,7 +75,7 @@ updateURL(note=null, removeIdx=-1){
     const search = (this.search != DEFAULT_TEXT_SEARCH) ? this.search : null;
 
     if (this.pdfURL)
-        finalURL += "?url=" + this.pdfURL;
+        finalURL += "#url=" + this.pdfURL;
     if (alpha)
         finalURL += "&alpha=" + alpha;
     if (touchholdDelay)
@@ -262,8 +262,7 @@ setGeneralListeners(){
             return;
         }
         var tmp_href;
-        const queryString = window.location.hash;
-        const urlParams = new URLSearchParams(queryString);
+        const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
         const tmp_page = urlParams.getAll('page')[0];
         if (tmp_page){
             tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)-1}`);
@@ -285,8 +284,7 @@ setGeneralListeners(){
             return;
         }
         var tmp_href;
-        const queryString = window.location.hash;
-        const urlParams = new URLSearchParams(queryString);
+        const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
         const tmp_page = urlParams.getAll('page')[0];
         if (tmp_page){
             tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)+1}`);
