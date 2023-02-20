@@ -8,9 +8,9 @@ I read a lot of papers from [arXiv](https://arxiv.org/) (:heart:), and I was mis
 </p>
 
 Usage example (yup, just click on the link to see a demo, maybe try a `shift or ctrl + F5` to force reload if the rectangles look crazy):    
-<a href="https://ricardodeazambuja.com/arxiv-highlighter/#url=https://arxiv.org/pdf/2103.04423.pdf&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA">https://ricardodeazambuja.com/arxiv-highlighter/#url=https://arxiv.org/pdf/2103.04423.pdf&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA</a>
+<a href="https://ricardodeazambuja.com/arxiv-highlighter/#url=https://arxiv.org/abs/2103.04423&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA">https://ricardodeazambuja.com/arxiv-highlighter/#url=https://arxiv.org/abs/2103.04423&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA</a>
 
-* `?url=https://arxiv.org/pdf/2103.04423.pdf`: arxiv pdf url
+* `#url=https://arxiv.org/abs/2103.04423`: arxiv url
 * `&page=1`: starts at page 1
 * `&cdata=...`: compressed data in URI friendly format
 
@@ -31,7 +31,7 @@ Share the final URL and the other person will be able to see it too, directly fr
 * `&alpha=0.3`: controls the alpha (transparency), defaults to 0.3.
 * `&delay=300`: controls the amount of time (ms) you touch down to start a new rectangle, defaults to 300.
 * `&search=false`: enable/disable searchable text (mobile browsers seem to struggle with the big svg generated).
-* `?url=test.pdf`: you can also access files from your local server.
+* `#url=test.pdf`: you can also access files from your local server.
 
 It works with any pdf file as long as it's hosted in a place that allows Cross-Origin Resource Sharing (CORS).
 

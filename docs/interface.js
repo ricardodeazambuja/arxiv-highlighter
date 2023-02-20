@@ -213,6 +213,9 @@ getFromUrl(){
     const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
     this.pdfURL = urlParams.get('url');
     if (this.pdfURL){
+        if (this.pdfURL.search("arxiv.org")!=-1 && this.pdfURL.search("abs")!=-1){
+            this.pdfURL = this.pdfURL.replace("abs","pdf")+".pdf";
+        }
         console.log("Found url: " + this.pdfURL);
     } else {
         main_title.textContent = "Missing url!";
