@@ -262,13 +262,17 @@ setGeneralListeners(){
             return;
         }
         var tmp_href;
-        const queryString = window.location.search;
+        const queryString = window.location.hash;
         const urlParams = new URLSearchParams(queryString);
         const tmp_page = urlParams.getAll('page')[0];
         if (tmp_page){
             tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)-1}`);
+        } else if (window.location.href.search(".pdf")!=-1) {
+            tmp_href = window.location.href.replace(".pdf", `.pdf&page=${parseInt(self.currPage)-1}`);
+        } else if (window.location.href.search(/\d{4}.\d{5}/g)!=-1) {
+            tmp_href = window.location.href.replace(/\d{4}.\d{5}/g, `$&&page=${parseInt(self.currPage)-1}`);
         } else {
-            tmp_href = window.location.href.replace(/\.pdf/gm, `.pdf&page=${parseInt(self.currPage)-1}`);
+            alert("Problem with the URL formatting, I can't add the page number to it :(");
         }
         window.history.pushState("", document.title, tmp_href);
         location.reload();
@@ -281,13 +285,17 @@ setGeneralListeners(){
             return;
         }
         var tmp_href;
-        const queryString = window.location.search;
+        const queryString = window.location.hash;
         const urlParams = new URLSearchParams(queryString);
         const tmp_page = urlParams.getAll('page')[0];
         if (tmp_page){
             tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)+1}`);
+        } else if (window.location.href.search(".pdf")!=-1) {
+            tmp_href = window.location.href.replace(".pdf", `.pdf&page=${parseInt(self.currPage)+1}`);
+        } else if (window.location.href.search(/\d{4}.\d{5}/g)!=-1) {
+            tmp_href = window.location.href.replace(/\d{4}.\d{5}/g, `$&&page=${parseInt(self.currPage)+1}`);
         } else {
-            tmp_href = window.location.href.replace(/\.pdf/gm, `.pdf&page=${parseInt(self.currPage)+1}`);
+            alert("Problem with the URL formatting, I can't add the page number to it :(");
         }
         window.history.pushState("", document.title, tmp_href);
         location.reload();
