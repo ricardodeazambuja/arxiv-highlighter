@@ -210,7 +210,7 @@ loadRectangles(){
 
 getFromUrl(){
     this.baseURL = window.location.origin + new URL(window.location.href).pathname;
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
     this.pdfURL = urlParams.get('url');
     if (this.pdfURL){
         console.log("Found url: " + this.pdfURL);
