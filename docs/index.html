@@ -17,6 +17,11 @@
     /* overflow:hidden; */
     -webkit-overflow-scrolling: touch; 
     }
+
+    pre {
+    display: inline;
+    margin: 0;
+    }
     </style>
 
 </head>
@@ -24,24 +29,37 @@
 
 <h1 id="main_title">Loading libraries...</h1>
 <div id="usage_help">
-Usage example:</br>
+<h2>Usage example:</h2>
 <a href="https://arxiv-highlighter.github.io/#url=https://arxiv.org/abs/2103.04423&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA">https://arxiv-highlighter.github.io/#url=https://arxiv.org/abs/2103.04423&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA</a></br>
 
 </br>
-Basics:</br>
+<h2>Basics:</h2>
 <ul>
-  <li>`#url=https://arxiv.org/abs/2103.04423`: arxiv url </li>
-  <li>`&page=1`: starts at page 1</li>
-  <li>`&cdata=...`: compressed data in URI friendly format</li>
+  <li><pre>#url=https://arxiv.org/abs/2103.04423</pre>: arxiv url </li>
+  <li><pre>&page=1</pre>: starts at page 1</li>
+  <li><pre>&cdata=...</pre>: compressed data in URI friendly format</li>
 </ul>
 
-Extras:</br>
+<h2>Using a mouse:</h2>
+To add an annotation (rectangle), simply click and drag. A prompt box will allow you to add a note, otherwise just close it. The annotation will be automatically added to the address bar. Click on a rectangle to see the note. Right-click on a rectangle to delete it. Right-click everywhere else to change the current color (the border shows it).
+
+<h2>Using a touch screen:</h2>
+To add an annotation (rectangle), simply touch and hold for 300ms (default), and drag. The rectangle will be automatically added to the address bar. One-finger touch on a rectangle will show the note. Two-finger touch on rectangle will delete it. Two-finger touch everywhere else to change the current color (the border shows it).
+
+<h2>Change the page:</h2>
+Just click on the gray boxes on the left (<pre><</pre>) / right (<pre>></pre>) rendered over the pdf. You can also change the value (<pre>page</pre>) in the URL and reload.
+
+<h2>How to share or store your annotations:</h2>
+Share the final URL and the other person will be able to see it too, directly from the web browser, no servers involved.
+
+<h2>Extras:</h2>
 <ul>
-  <li>`&alpha=0.3`: controls the alpha (transparency), defaults to 0.3.</li>
-  <li>`&delay=300`: controls the amount of time (ms) you touch down (touchscreens only) to start a new rectangle, defaults to 300.</li>
-  <li>`&search=false`: enable/disable searchable text (mobile browsers seem to struggle with the big svg generated).</li>
-  <li>`#url=test.pdf`: you can also access files from your local server.</li>
+  <li><pre>&alpha=0.3</pre>: controls the alpha (transparency), defaults to 0.3.</li>
+  <li><pre>&delay=300</pre>: controls the amount of time (ms) you touch down (touchscreens only) to start a new rectangle, defaults to 300.</li>
+  <li><pre>&search=false</pre>: enable/disable searchable text (mobile browsers seem to struggle with the big svg generated).</li>
+  <li><pre>#url=test.pdf</pre>: you can also access files from your local server.</li>
 </ul>
+
 </div>
 
 <div id="container" style="width: 100vw; text-align:center;">
