@@ -220,8 +220,9 @@ getFromUrl(){
         console.log("Found url: " + this.pdfURL);
     } else {
         main_title.textContent = "Missing url!";
+        usage_help.style.display = "block";
         console.log("Missing url!");
-        return;
+        return -1;
     }
 
     this.currPage = urlParams.getAll('page')[0];
@@ -256,6 +257,7 @@ setGeneralListeners(){
     window.addEventListener('popstate', function() {
         location.reload(); // easier (url will be updated) than manipulating the canvas...
     }, false);
+
 
     prev_page.addEventListener('click', function() {
         if (self.currPage == 1){
@@ -525,7 +527,11 @@ open() {
         );
     }
 
-    this.getFromUrl();
+    if (this.getFromUrl()==-1)
+        return;
+    
+    usage_help.style.display = "none";
+
     const loadingTask = pdfjsLib.getDocument(this.pdfURL);
 
     this.pdfLoadingTask = loadingTask;
@@ -575,8 +581,8 @@ open() {
                                                 transform,
                                                 viewport,
                                             };
-                        const renderTask = page.render(renderContext);
                         main_title.textContent = "Rendering...";
+                        const renderTask = page.render(renderContext);
                         renderTask.promise.then(function() {
                         }).then(function() {
                             if (self.search){
