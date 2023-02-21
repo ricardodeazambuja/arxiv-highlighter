@@ -310,7 +310,6 @@ setTouchInterface(){
     canvas_annotation.addEventListener('touchstart', function(e) {
         if(e.touches.length == 1) {
             self.touchstartTime = new Date().getTime();
-            self.touchId = e.touches[0].touchId;
             offsetX = self.outputScale*e.touches[0].pageX - 20; //10px border
             offsetY = self.outputScale*e.touches[0].pageY - 20; //10px border
             self.origin = {x: offsetX/canvas.width, y: offsetY/canvas.height};
@@ -338,9 +337,7 @@ setTouchInterface(){
     canvas_annotation.addEventListener('touchmove', function(e) {
         if (e.touches.length == 2) {
             self.changeColor = false; // avoid changing color during zoom
-        }
-
-        if(e.touches.length == 1 && self.touchstartTime > 0 && self.touchId == e.touches[0].touchId) {
+        } else if(self.touchstartTime > 0) {
             if (((new Date().getTime()) - self.touchstartTime ) > self.touchholdDelay){
                 e.preventDefault();
                 self.touchstartTime = 0;
@@ -352,9 +349,7 @@ setTouchInterface(){
                 self.touchstartTime = 0; // to prevent starting while scrolling, etc
                 self.drawing = false;
             }
-        }
-
-        if (self.drawing) {
+        } else if (self.drawing) {
             e.preventDefault();
             if (!!self.origin) { 
                 if (!!self.final) { 
@@ -383,14 +378,12 @@ setTouchInterface(){
             const tmp_key = RECTCOLOURS_KEYS[(self.next_color % RECTCOLOURS_KEYS.length + RECTCOLOURS_KEYS.length) % RECTCOLOURS_KEYS.length];
             canvas_annotation.style.borderColor = RECTCOLOURS[tmp_key];
             console.log("Color changed to " + RECTCOLOURS[tmp_key]);
-        }
-
-        if (self.drawing){
+        } else if (self.drawing){
             e.preventDefault();
             if (!!self.final) {
                 const delayedPrompt = () => {
                     const note = prompt("Add note?", "")
-                    tmp_annotation.canvas.note = note ? note.replace(/\&/gm,"%26") : "";
+                    tmp_annotation.canvas.note = note ? note : "";
                     self.updateURL(tmp_annotation.canvas.note);
                     self.origin = null; 
                     self.final = null; 
@@ -400,10 +393,7 @@ setTouchInterface(){
                 // delete canvas
                 console.log("No rectangle, delete canvas!")
                 self.canvasBuilder(false);
-                self.origin = null; 
-                self.final = null; 
             }
-            self.drawing = false;
         } else {
             if (offsetX){
                 const tmp_canvas = self.checkHoverCanvas(offsetX, offsetY);
@@ -414,6 +404,9 @@ setTouchInterface(){
             }
         }
         offsetX = offsetY = null;
+        self.origin = null; 
+        self.final = null; 
+        self.drawing = false;
     }, false);
 },
 
@@ -474,7 +467,7 @@ setMouseInterface(){
         if (!!self.final) {
             const delayedPrompt = () => {
                 const note = prompt("Add note?", "")
-                tmp_annotation.canvas.note = note ? note.replace(/\&/gm,"%26") : "";
+                tmp_annotation.canvas.note = note ? note : "";
                 self.updateURL(tmp_annotation.canvas.note);
                 self.origin = null; 
                 self.final = null; 
