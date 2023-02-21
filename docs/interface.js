@@ -221,6 +221,9 @@ getFromUrl(){
     } else {
         main_title.textContent = "Missing url!";
         usage_help.style.display = "block";
+        if (window.location.hash==''){
+            window.location.hash="url="; // trying to make it more user friendly...
+        }
         console.log("Missing url!");
         return -1;
     }
