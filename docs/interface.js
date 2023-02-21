@@ -118,10 +118,9 @@ updateURL(note=null, removeIdx=-1){
     dataFromUrl = dataFromUrl.concat(urlAddition);
 
     this.urlCompressedData = LZString.compressToEncodedURIComponent(dataFromUrl.join("&"));
-    if (this.urlCompressedData=='Q')
-        this.urlCompressedData = null;
-
-    finalURL += "&cdata="+this.urlCompressedData;
+    if (this.urlCompressedData!='Q')
+        finalURL += "&cdata="+this.urlCompressedData;
+    
     window.history.pushState("", document.title, finalURL);  
 },
 
