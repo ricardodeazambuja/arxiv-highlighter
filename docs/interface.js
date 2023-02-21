@@ -253,11 +253,6 @@ getFromUrl(){
 
 setGeneralListeners(){
     const self = this;
-    // This allows the use of back/forward to undo/redo things
-    window.addEventListener('popstate', function() {
-        location.reload(); // easier (url will be updated) than manipulating the canvas...
-    }, false);
-
 
     prev_page.addEventListener('click', function() {
         if (self.currPage == 1){
@@ -661,6 +656,15 @@ window.PDFHighlighterApplication = PDFHighlighterApplication;
 //   },
 //   true
 // );
+
+// This allows the use of back/forward to undo/redo things
+window.addEventListener('popstate', function() {
+    location.reload(); // easier (url will be updated) than manipulating the canvas...
+}, false);
+
+window.addEventListener('hashchange', function() {
+    location.reload(); // chrome was not reloading for some reason...
+}, false);
 
 // waiting for first animation.
 const animationStarted = new Promise(function (resolve) {
