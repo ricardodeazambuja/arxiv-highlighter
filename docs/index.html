@@ -18,6 +18,26 @@
 <body>
 
 <h1 id="main_title">Loading libraries...</h1>
+<div id="usage_help">
+Usage example:</br>
+<a href="https://arxiv-highlighter.github.io/#url=https://arxiv.org/abs/2103.04423&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA">https://arxiv-highlighter.github.io/#url=https://arxiv.org/abs/2103.04423&page=1&cdata=IwGg5iAMB0wBxWgZgCyIExpkgbCAQgKYA2A9gO4AE5AFgIYAulAzqQLaGUDGpArgHYMATgEtCzbqX7MRAE0JDKDGpzZ0AHiLa821QiLA0mAI0IAzUkM7LO-QoVmULi5gAdCXEXWKViIroTS4iCUhAxc0ABkoKSIAKzoiMAAnIgA7HGISJkAirx0sjyuDAqUvDL8YJR0lGwi6gy8VpSkZpSiYHLV-I5mxISaxv2UrnRCDMxRiUJJWNDomTDoaRgrACoqlMZ0bMakpJQAbgoyUpQiEoR0MqUMB8a8IsSyIQ9MIu8S-cwSQqQPzCYdDAdBE0iYXCE1xUk0iiQAnhg8EsVjAUKklghIkhwIhIKjoJBFtBkqAljiNuJOFpgeJqs0bO0rqx+EoaBcRrSlHQANZ0siVW4HKw9BQAQiAA</a></br>
+
+</br>
+Basics:</br>
+<ul>
+  <li>`#url=https://arxiv.org/abs/2103.04423`: arxiv url </li>
+  <li>`&page=1`: starts at page 1</li>
+  <li>`&cdata=...`: compressed data in URI friendly format</li>
+</ul>
+
+Extras:</br>
+<ul>
+  <li>`&alpha=0.3`: controls the alpha (transparency), defaults to 0.3.</li>
+  <li>`&delay=300`: controls the amount of time (ms) you touch down (touchscreens only) to start a new rectangle, defaults to 300.</li>
+  <li>`&search=false`: enable/disable searchable text (mobile browsers seem to struggle with the big svg generated).</li>
+  <li>`#url=test.pdf`: you can also access files from your local server.</li>
+</ul>
+</div>
 
 <div id="container" style="width: 100vw; text-align:center;">
   <canvas id="canvas_page" style="border: 10px solid white; direction: ltr; display: none;"></canvas>

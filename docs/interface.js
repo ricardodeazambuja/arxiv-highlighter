@@ -10,6 +10,7 @@ const DEFAULT_MIN_MOV = 0.01;
 const DEFAULT_TEXT_SEARCH = true;
 
 const main_title = document.getElementById('main_title');
+const usage_help = document.getElementById('usage_help');
 const container = document.getElementById("container");
 
 const next_page = document.getElementById('next_page');
@@ -604,6 +605,7 @@ open() {
                             }
 
                             main_title.style.display = "none";
+                            usage_help.style.display = "none";
                             textLayer.style.display = "block";
                             canvas.style.display = "block";
                             canvas_annotation.style.display = "block";
@@ -619,6 +621,7 @@ open() {
                     function (exception) {
                         const message = exception && exception.message;
                         main_title.style.display = "block";
+                        usage_help.style.display = "block";
                         main_title.textContent = message;
                         console.log(message);
                       }
@@ -627,6 +630,7 @@ open() {
             } catch (e){
                 main_title.textContent = `${e} (Page ${self.currPage})`;
                 main_title.style.display = "block";
+                usage_help.style.display = "block";
                 console.log(e);
                 return;
             }
@@ -634,6 +638,7 @@ open() {
         function (exception) {
           const message = exception && exception.message;
           main_title.style.display = "block";
+          usage_help.style.display = "block";
           main_title.textContent = message;
           console.log(message);
         }
