@@ -71,21 +71,21 @@ const PDFHighlighterApplication = {
     
 
 updateURL(note=null, removeIdx=-1){
-    var finalURL = this.baseURL;
+    var finalHash = "";
     const alpha = (this.alpha != DEFAULT_ALPHA) ? this.alpha : null;
     const touchholdDelay = (this.touchholdDelay != DEFAULT_TOUCH_DELAY) ? this.touchholdDelay : null;
     const currPage = (this.currPage != DEFAULT_INIT_PAGE) ? this.currPage : null;
     const search = (this.search != DEFAULT_TEXT_SEARCH) ? this.search : null;
 
-    finalURL += "#url=" + this.URL;
+    finalHash += "#url=" + this.URL;
     if (alpha)
-        finalURL += "&alpha=" + alpha;
+        finalHash += "&alpha=" + alpha;
     if (touchholdDelay)
-        finalURL += "&delay=" + touchholdDelay;
+        finalHash += "&delay=" + touchholdDelay;
     if (search!=null)
-        finalURL += "&search=" + search;
+        finalHash += "&search=" + search;
     if (currPage)
-        finalURL += "&page=" + currPage;
+        finalHash += "&page=" + currPage;
     
     var urlAddition = [];
     if ((note!=null) && (removeIdx==-1)){
@@ -127,9 +127,10 @@ updateURL(note=null, removeIdx=-1){
 
     this.urlCompressedData = [LZString.compressToEncodedURIComponent(dataFromUrl.join("&"))];
     if (this.urlCompressedData!='Q')
-        finalURL += "&cdata="+this.urlCompressedData;
+        finalHash += "&cdata="+this.urlCompressedData;
     
-    window.history.pushState("", document.title, finalURL);  
+    this.hashChanged = true;
+    window.location.hash = finalHash;
 },
 
 checkHoverCanvas(x, y){
