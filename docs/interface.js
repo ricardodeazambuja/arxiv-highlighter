@@ -415,7 +415,7 @@ setTouchInterface(){
                             }
                         }
                         const note = prompt(tmp_canvas.note, tmp_canvas.note);
-                        if (tmp_canvas.note!=note){
+                        if (tmp_canvas.note!=note && note!=null){
                             self.activeCanvases[i].note = note;
                             self.updateURL(note, i);
                         }
@@ -508,7 +508,7 @@ setMouseInterface(){
                         }
                     }
                     const note = prompt(tmp_canvas.note, tmp_canvas.note);
-                    if (tmp_canvas.note!=note){
+                    if (tmp_canvas.note!=note && note!=null){
                         self.activeCanvases[i].note = note;
                         self.updateURL(note, i);
                     }
