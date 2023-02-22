@@ -47,6 +47,7 @@ const PDFHighlighterApplication = {
     pdfLoadingTask: null,
     pdfDocument: null,
     pdfURL: null,
+    URL: null,
     baseURL: null,
     origin: null,
     final: null,
@@ -66,6 +67,7 @@ const PDFHighlighterApplication = {
     total_pages: 0,
 
     alpha: null,
+    hashChanged: false,
     
 
 updateURL(note=null, removeIdx=-1){
@@ -75,8 +77,7 @@ updateURL(note=null, removeIdx=-1){
     const currPage = (this.currPage != DEFAULT_INIT_PAGE) ? this.currPage : null;
     const search = (this.search != DEFAULT_TEXT_SEARCH) ? this.search : null;
 
-    if (this.pdfURL)
-        finalURL += "#url=" + this.pdfURL;
+    finalURL += "#url=" + this.URL;
     if (alpha)
         finalURL += "&alpha=" + alpha;
     if (touchholdDelay)
@@ -151,7 +152,7 @@ checkHoverCanvas(x, y){
 },
 
 canvasBuilder(create=true){
-    if (create){
+    if (create==true){
         this.canvasLayer += 1;
         const tmp_canvas = document.createElement("canvas");
         this.activeCanvases.push(tmp_canvas);
@@ -170,12 +171,16 @@ canvasBuilder(create=true){
         tmp_canvas.style.border = canvas.style.border;
         console.log("Creating canvas number: " + this.canvasLayer);
         return tmp_canvas.getContext("2d");    
+    } else if (create=='clean'){
+        for(let tmp_canvas of this.activeCanvases){
+            tmp_canvas.remove();    
+        }
+        this.activeCanvases = [];
     } else {
         console.log("Deleting canvas number: " + this.canvasLayer);
         const tmp_canvas = this.activeCanvases.pop();
         tmp_canvas.remove();
         this.canvasLayer -= 1;
-        return;
     }
 },
 
@@ -216,16 +221,19 @@ loadRectangles(){
 getFromUrl(){
     this.baseURL = window.location.origin + new URL(window.location.href).pathname;
     const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
-    this.pdfURL = urlParams.get('url');
-    if (this.pdfURL){
-        if (this.pdfURL.search("arxiv.org")!=-1 && this.pdfURL.search("abs")!=-1){
-            this.pdfURL = this.pdfURL.replace("abs","pdf")+".pdf";
+    this.URL = urlParams.get('url');
+    if (this.URL){
+        if (this.URL.search("arxiv.org")!=-1 && this.URL.search("abs")!=-1){
+            this.pdfURL = this.URL.replace("abs","pdf")+".pdf";
+        } else {
+            this.pdfURL = this.URL;
         }
-        console.log("Found url: " + this.pdfURL);
+        console.log("Found pdfURL: " + this.pdfURL);
     } else {
         main_title.textContent = "Missing url!";
         usage_help.style.display = "block";
         if (window.location.hash==''){
+            this.hashChanged = true;
             window.location.hash="url="; // trying to make it more user friendly...
         }
         console.log("Missing url!");
@@ -257,6 +265,23 @@ getFromUrl(){
     this.urlCompressedData = urlParams.getAll('cdata')[0];
 },
 
+updatePageHash(pageNum){
+    var tmp_hash;
+    const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
+    const tmp_page = urlParams.getAll('page')[0];
+    if (tmp_page){
+        tmp_hash = window.location.hash.replace(/\&page=\d*/gm, `&page=${pageNum}`);
+    } else if (window.location.hash.search(".pdf")!=-1) {
+        tmp_hash = window.location.hash.replace(".pdf", `.pdf&page=${pageNum}`);
+    } else if (window.location.hash.search(/\d{4}.\d{5}/g)!=-1) {
+        tmp_hash = window.location.hash.replace(/\d{4}.\d{5}/g, `$&&page=${pageNum}`);
+    } else {
+        alert("Problem with the URL formatting, I can't add the page number to it :(");
+        return;
+    }
+    this.hashChanged = true;
+    window.location.hash = tmp_hash;
+},
 
 setGeneralListeners(){
     const self = this;
@@ -266,20 +291,9 @@ setGeneralListeners(){
             console.log("Reached first page!");
             return;
         }
-        var tmp_href;
-        const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
-        const tmp_page = urlParams.getAll('page')[0];
-        if (tmp_page){
-            tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)-1}`);
-        } else if (window.location.href.search(".pdf")!=-1) {
-            tmp_href = window.location.href.replace(".pdf", `.pdf&page=${parseInt(self.currPage)-1}`);
-        } else if (window.location.href.search(/\d{4}.\d{5}/g)!=-1) {
-            tmp_href = window.location.href.replace(/\d{4}.\d{5}/g, `$&&page=${parseInt(self.currPage)-1}`);
-        } else {
-            alert("Problem with the URL formatting, I can't add the page number to it :(");
-        }
-        window.history.pushState("", document.title, tmp_href);
-        location.reload();
+        self.currPage--;
+        self.updatePageHash(self.currPage);
+        self.load();
     }, false);
 
 
@@ -288,20 +302,9 @@ setGeneralListeners(){
             console.log("Reached last page!");
             return;
         }
-        var tmp_href;
-        const urlParams = new URLSearchParams("?"+window.location.hash.slice(1));
-        const tmp_page = urlParams.getAll('page')[0];
-        if (tmp_page){
-            tmp_href = window.location.href.replace(/\&page=\d*/gm, `&page=${parseInt(tmp_page)+1}`);
-        } else if (window.location.href.search(".pdf")!=-1) {
-            tmp_href = window.location.href.replace(".pdf", `.pdf&page=${parseInt(self.currPage)+1}`);
-        } else if (window.location.href.search(/\d{4}.\d{5}/g)!=-1) {
-            tmp_href = window.location.href.replace(/\d{4}.\d{5}/g, `$&&page=${parseInt(self.currPage)+1}`);
-        } else {
-            alert("Problem with the URL formatting, I can't add the page number to it :(");
-        }
-        window.history.pushState("", document.title, tmp_href);
-        location.reload();
+        self.currPage++;
+        self.updatePageHash(self.currPage);
+        self.load();
     }, false);
 
 },
@@ -559,104 +562,18 @@ open() {
     };
 
     return loadingTask.promise.then(
-        function (pdfDocument) {
-            //
-            // Fetch the page
-            //
-            try {
-                pdfDocument.getPage(parseInt(self.currPage)).then(
-                    function(page){
-                        var desiredWidth = container.clientWidth - canvas.style.border.split(" ")[0].slice(0,-2)*2;
-                        var viewport = page.getViewport({ scale: 1, });
-                        var scale = desiredWidth / viewport.width;
-                        viewport = page.getViewport({ scale: scale, });
+        function(pdfDocument){
+            self.setGeneralListeners();
 
-                        // Support HiDPI-screens.
-                        self.outputScale = window.devicePixelRatio || 1;
-
-                        //
-                        // Prepare canvas using PDF page dimensions
-                        //
-                        canvas.width = Math.floor(viewport.width * self.outputScale);
-                        canvas.height = Math.floor(viewport.height * self.outputScale);
-                        canvas.style.width = Math.floor(viewport.width) + "px";
-                        canvas.style.height = Math.floor(viewport.height) + "px";
-
-                        canvas_annotation.width = canvas.width;
-                        canvas_annotation.height = canvas.height;
-                        canvas_annotation.style.width = canvas.style.width;
-                        canvas_annotation.style.height = canvas.style.height;
-                        canvas_annotation.style.left = canvas.style.left
-
-                        const transform = self.outputScale !== 1 ? [self.outputScale, 0, 0, self.outputScale, 0, 0] : null;
-
-                        //
-                        // Render PDF page into canvas context
-                        //
-                        const renderContext = {
-                                                canvasContext: context,
-                                                transform,
-                                                viewport,
-                                            };
-                        main_title.textContent = "Rendering...";
-                        const renderTask = page.render(renderContext);
-                        renderTask.promise.then(function() {
-                        }).then(function() {
-                            if (self.search){
-                                main_title.textContent = "Recovering text...";
-                                return page.getTextContent();    
-                            } else {
-                                return;
-                            }
-                        }).then(function(textContent) {
-                            main_title.textContent = "Almost there...";
-                            if (!!textContent){
-                                // building SVG and adding that to the DOM
-                                const svg = buildSVG(viewport, textContent);
-                                textLayer.append(svg);
-                            }
-    
-                            self.setGeneralListeners();
-    
-                            self.loadRectangles();
-    
-                            // https://stackoverflow.com/a/48579537/7658422
-                            if (window.matchMedia('(hover: hover), (any-hover: hover), (-moz-touch-enabled: 0)').matches) {
-                                self.setMouseInterface();
-                            } else {
-                                self.setTouchInterface();
-                            }
-
-                            main_title.style.display = "none";
-                            usage_help.style.display = "none";
-                            textLayer.style.display = "block";
-                            canvas.style.display = "block";
-                            canvas_annotation.style.display = "block";
-                            prev_page_div.style.display = "block";
-                            next_page_div.style.display = "block";
-
-
-                            // Release page resources.
-                            page.cleanup();
-    
-                        });
-                    },
-                    function (exception) {
-                        const message = exception && exception.message;
-                        main_title.style.display = "block";
-                        usage_help.style.display = "block";
-                        main_title.textContent = message;
-                        console.log(message);
-                      }
-                );
-                self.total_pages = pdfDocument.numPages;
-            } catch (e){
-                main_title.textContent = `${e} (Page ${self.currPage})`;
-                main_title.style.display = "block";
-                usage_help.style.display = "block";
-                console.log(e);
-                return;
+            // https://stackoverflow.com/a/48579537/7658422
+            if (window.matchMedia('(hover: hover), (any-hover: hover), (-moz-touch-enabled: 0)').matches) {
+                self.setMouseInterface();
+            } else {
+                self.setTouchInterface();
             }
+
+            self.pdfDocument = pdfDocument;
+            self.load();
         },
         function (exception) {
           const message = exception && exception.message;
@@ -666,26 +583,128 @@ open() {
           console.log(message);
         }
     );
+},
+load(){
+    const self = this;
+    //
+    // Fetch the page
+    //
+    main_title.style.display = "block";
+    usage_help.style.display = "none";
+    textLayer.style.display = "none";
+    canvas.style.display = "none";
+    canvas_annotation.style.display = "none";
+    prev_page_div.style.display = "none";
+    next_page_div.style.display = "none";
+    this.canvasBuilder('clean');
+    try {
+        self.pdfDocument.getPage(parseInt(self.currPage)).then(
+            function(page){
+                var desiredWidth = container.clientWidth - canvas.style.border.split(" ")[0].slice(0,-2)*2;
+                var viewport = page.getViewport({ scale: 1, });
+                var scale = desiredWidth / viewport.width;
+                viewport = page.getViewport({ scale: scale, });
+
+                // Support HiDPI-screens.
+                self.outputScale = window.devicePixelRatio || 1;
+
+                //
+                // Prepare canvas using PDF page dimensions
+                //
+                canvas.width = Math.floor(viewport.width * self.outputScale);
+                canvas.height = Math.floor(viewport.height * self.outputScale);
+                canvas.style.width = Math.floor(viewport.width) + "px";
+                canvas.style.height = Math.floor(viewport.height) + "px";
+
+                canvas_annotation.width = canvas.width;
+                canvas_annotation.height = canvas.height;
+                canvas_annotation.style.width = canvas.style.width;
+                canvas_annotation.style.height = canvas.style.height;
+                canvas_annotation.style.left = canvas.style.left
+
+                const transform = self.outputScale !== 1 ? [self.outputScale, 0, 0, self.outputScale, 0, 0] : null;
+
+                //
+                // Render PDF page into canvas context
+                //
+                const renderContext = {
+                                        canvasContext: context,
+                                        transform,
+                                        viewport,
+                                    };
+                main_title.textContent = "Rendering...";
+                self.renderTask = true;
+                const renderTask = page.render(renderContext);
+                renderTask.promise.then(function() {
+                }).then(function() {
+                    self.loadRectangles();
+                    main_title.style.display = "none";
+                    canvas.style.display = "block";
+                    canvas_annotation.style.display = "block";
+                    prev_page_div.style.display = "block";
+                    next_page_div.style.display = "block";
+
+                    if (self.search){
+                        main_title.textContent = "Recovering text...";
+                        return page.getTextContent();    
+                    } else {
+                        return;
+                    }
+                }).then(function(textContent) {
+                    main_title.textContent = "Almost there...";
+                    if (!!textContent){
+                        // building SVG and adding that to the DOM
+                        const svg = buildSVG(viewport, textContent);
+                        textLayer.append(svg);
+                    }
+                            textLayer.style.display = "block";
+                            textLayer.style.display = "block";
+                            canvas.style.display = "block";
+                            canvas_annotation.style.display = "block";
+                            prev_page_div.style.display = "block";
+                            next_page_div.style.display = "block";
+
+
+                    textLayer.style.display = "block";
+                            canvas.style.display = "block";
+                            canvas_annotation.style.display = "block";
+                            prev_page_div.style.display = "block";
+                            next_page_div.style.display = "block";
+
+
+                    // Release page resources.
+                    page.cleanup();
+                });
+            },
+            function (exception) {
+                const message = exception && exception.message;
+                main_title.style.display = "block";
+                usage_help.style.display = "block";
+                main_title.textContent = message;
+                console.log(message);
+                }
+        );
+        self.total_pages = self.pdfDocument.numPages;
+    } catch (e){
+        main_title.textContent = `${e} (Page ${self.currPage})`;
+        main_title.style.display = "block";
+        usage_help.style.display = "block";
+        console.log(e);
+        return;
+    }
 }
 };
 
 window.PDFHighlighterApplication = PDFHighlighterApplication;
 
-// document.addEventListener(
-//   "DOMContentLoaded",
-//   function () {
-//     PDFHighlighterApplication.open();
-//   },
-//   true
-// );
-
 // This allows the use of back/forward to undo/redo things
-window.addEventListener('popstate', function() {
-    location.reload(); // easier (url will be updated) than manipulating the canvas...
-}, false);
-
-window.addEventListener('hashchange', function() {
-    location.reload(); // chrome was not reloading for some reason...
+window.addEventListener('popstate', function(e) {
+    if (PDFHighlighterApplication.hashChanged){
+        PDFHighlighterApplication.hashChanged = false;
+        return;
+    } else {
+        location.reload(); // easier (url will be updated) than manipulating the canvas...
+    }
 }, false);
 
 // waiting for first animation.
