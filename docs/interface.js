@@ -100,7 +100,9 @@ updateURL(note=null, removeIdx=-1){
 
     var dataFromUrl = [];
     if (!!this.urlCompressedData){
-        dataFromUrl = LZString.decompressFromEncodedURIComponent(this.urlCompressedData).split("&");
+        for (let cdata of this.urlCompressedData){
+            dataFromUrl = dataFromUrl.concat(LZString.decompressFromEncodedURIComponent(cdata).split("&"));
+        }
         if (removeIdx!=-1){
             let activeRectangle = 0
             for (let i of dataFromUrl.keys()){
@@ -123,7 +125,7 @@ updateURL(note=null, removeIdx=-1){
 
     dataFromUrl = dataFromUrl.concat(urlAddition);
 
-    this.urlCompressedData = LZString.compressToEncodedURIComponent(dataFromUrl.join("&"));
+    this.urlCompressedData = [LZString.compressToEncodedURIComponent(dataFromUrl.join("&"))];
     if (this.urlCompressedData!='Q')
         finalURL += "&cdata="+this.urlCompressedData;
     
@@ -192,9 +194,13 @@ drawRectangle(tmp_context, rectCoord){
 },
 
 loadRectangles(){
-    var rectangles = []
-    if (!!this.urlCompressedData)
-        rectangles = LZString.decompressFromEncodedURIComponent(this.urlCompressedData).split("&");
+    var rectangles = [];
+    if (!!this.urlCompressedData){
+        for (let cdata of this.urlCompressedData){
+            rectangles = rectangles.concat(LZString.decompressFromEncodedURIComponent(cdata).split("&"));
+        }
+        console.log(rectangles);
+    }
 
     for(let i of rectangles.keys()){
       const rectangle = rectangles[i].split(',');
@@ -262,7 +268,7 @@ getFromUrl(){
         this.touchholdDelay = DEFAULT_TOUCH_DELAY;
     }
 
-    this.urlCompressedData = urlParams.getAll('cdata')[0];
+    this.urlCompressedData = urlParams.getAll('cdata');
 },
 
 updatePageHash(pageNum){
