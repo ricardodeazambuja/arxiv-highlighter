@@ -87,15 +87,14 @@ updateURL(note=null, removeIdx=-1){
         finalURL += "&page=" + currPage;
     
     var urlAddition = [];
-    if (note != null){
+    if ((note!=null) && (removeIdx==-1)){
         urlAddition = [this.currPage + "," +
                        canvas_annotation.style.borderColor[0] + "," +
-                       this.origin.x.toFixed(2) + "," +
-                       this.origin.y.toFixed(2) + "," +
-                       this.final.x.toFixed(2)  + "," +
-                       this.final.y.toFixed(2)  + "," +
+                       this.origin.x + "," +
+                       this.origin.y + "," +
+                       this.final.x  + "," +
+                       this.final.y  + "," +
                        `${note}`];
-
     }
 
     var dataFromUrl = [];
@@ -106,7 +105,13 @@ updateURL(note=null, removeIdx=-1){
             for (let i of dataFromUrl.keys()){
                 if (dataFromUrl[i][0]==this.currPage){
                     if (activeRectangle==removeIdx){
-                        dataFromUrl.splice(i,1);
+                        if (note==null){
+                            dataFromUrl.splice(i,1);
+                        } else {
+                            let tmp_data = dataFromUrl[i].split(',');
+                            tmp_data[6] = note;
+                            dataFromUrl[i] = tmp_data;
+                        }
                         break;
                     }
                     activeRectangle++;
@@ -384,7 +389,7 @@ setTouchInterface(){
                 const delayedPrompt = () => {
                     const note = prompt("Add note?", "")
                     tmp_annotation.canvas.note = note ? note : "";
-                    self.updateURL(tmp_annotation.canvas.note);
+                    self.updateURL(tmp_annotation.canvas.note, -1);
                     self.origin = null; 
                     self.final = null; 
                 };
@@ -398,14 +403,25 @@ setTouchInterface(){
             if (offsetX){
                 const tmp_canvas = self.checkHoverCanvas(offsetX, offsetY);
                 if (tmp_canvas){
-                    const delayedAlert = () => {alert(tmp_canvas.note);};
+                    const delayedAlert = () => {
+                        let i;
+                        for(i of self.activeCanvases.keys()){
+                            if(tmp_canvas==self.activeCanvases[i]){
+                                console.log("Updating canvas index: " + i);
+                                break;
+                            }
+                        }
+                        const note = prompt(tmp_canvas.note, tmp_canvas.note);
+                        if (tmp_canvas.note!=note){
+                            self.activeCanvases[i].note = note;
+                            self.updateURL(note, i);
+                        }
+                    };    
                     setTimeout(delayedAlert, 10);
                 }    
             }
         }
         offsetX = offsetY = null;
-        self.origin = null; 
-        self.final = null; 
         self.drawing = false;
     }, false);
 },
@@ -468,7 +484,7 @@ setMouseInterface(){
             const delayedPrompt = () => {
                 const note = prompt("Add note?", "")
                 tmp_annotation.canvas.note = note ? note : "";
-                self.updateURL(tmp_annotation.canvas.note);
+                self.updateURL(tmp_annotation.canvas.note,-1);
                 self.origin = null; 
                 self.final = null; 
             };
@@ -480,7 +496,20 @@ setMouseInterface(){
 
             const tmp_canvas = self.checkHoverCanvas(e.offsetX, e.offsetY);
             if (tmp_canvas){
-                const delayedAlert = () => {alert(tmp_canvas.note);};
+                const delayedAlert = () => {
+                    let i;
+                    for(i of self.activeCanvases.keys()){
+                        if(tmp_canvas==self.activeCanvases[i]){
+                            console.log("Updating canvas index: " + i);
+                            break;
+                        }
+                    }
+                    const note = prompt(tmp_canvas.note, tmp_canvas.note);
+                    if (tmp_canvas.note!=note){
+                        self.activeCanvases[i].note = note;
+                        self.updateURL(note, i);
+                    }
+                };
                 setTimeout(delayedAlert, 10);
             }
             self.origin = null; 
@@ -519,8 +548,6 @@ open() {
 
     if (this.getFromUrl()==-1)
         return;
-    
-    usage_help.style.display = "none";
 
     const loadingTask = pdfjsLib.getDocument(this.pdfURL);
 
