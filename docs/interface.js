@@ -518,6 +518,13 @@ setMouseInterface(){
             self.origin = null; 
         }
     }, false);
+
+    canvas_annotation.addEventListener('mouseleave', function(e){
+        if (!!self.origin){
+            self.canvasBuilder(false);
+            self.origin = self.final = null;
+        }
+    }, false);
 },
 
 close() {
