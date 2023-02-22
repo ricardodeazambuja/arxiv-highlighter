@@ -655,23 +655,13 @@ load(){
                     if (!!textContent){
                         // building SVG and adding that to the DOM
                         const svg = buildSVG(viewport, textContent);
+                        const prevSVG = document.getElementById("svg_text");
+                        if (prevSVG){
+                            prevSVG.remove();
+                        }
                         textLayer.append(svg);
+                        textLayer.style.display = "block";
                     }
-                            textLayer.style.display = "block";
-                            textLayer.style.display = "block";
-                            canvas.style.display = "block";
-                            canvas_annotation.style.display = "block";
-                            prev_page_div.style.display = "block";
-                            next_page_div.style.display = "block";
-
-
-                    textLayer.style.display = "block";
-                            canvas.style.display = "block";
-                            canvas_annotation.style.display = "block";
-                            prev_page_div.style.display = "block";
-                            next_page_div.style.display = "block";
-
-
                     // Release page resources.
                     page.cleanup();
                 });
@@ -744,6 +734,7 @@ function buildSVG(viewport, textContent) {
       text.setAttribute("fill", "rgba(100%, 100%, 100%, 0.0)");
       // text.setAttribute("opacity", 0.1);
       text.textContent = textItem.str;
+      svg.setAttribute("id", "svg_text");
       svg.append(text);
     });
     return svg;
