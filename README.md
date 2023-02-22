@@ -15,16 +15,16 @@ Usage example (yup, just click on the link to see a demo, maybe try a `shift or 
 * `&cdata=...`: compressed data in URI friendly format
 
 ## Using a mouse
-To add an annotation (rectangle), simply click and drag. A prompt box will allow you to add a note, otherwise just close it. The annotation will be automatically added to the address bar. Click on a rectangle to see the note. Right-click on a rectangle to delete it. Right-click everywhere else to change the current color (the border shows it).
+To add an annotation (rectangle), simply click and drag. A prompt box will allow you to add a note, otherwise just close it. The annotation will be automatically added to the address bar. Click on a rectangle to see (or edit) the note. Right-click on a rectangle to delete it. Right-click everywhere else to change the current color (the border shows it).
 
 ## Using a touch screen
-To add an annotation (rectangle), simply touch and hold for 300ms (default), and drag. The rectangle will be automatically added to the address bar. One-finger touch on a rectangle will show the note. Two-finger touch on rectangle will delete it. Two-finger touch everywhere else to change the current color (the border shows it).
+To add an annotation (rectangle), simply touch and hold for 300ms (default), and drag. The rectangle will be automatically added to the address bar. One-finger touch on a rectangle will allow you to see (or edit) the note. Two-finger touch on rectangle will delete it. Two-finger touch everywhere else to change the current color (the border shows it).
 
 ## Change the pdf page
 Just click on the gray boxes on the left (`<`) / right (`>`) rendered over the pdf. You can also change the value (`page`) in the URL and reload.
 
 ## How to share or store your annotations
-Share the final URL and the other person will be able to see it too, directly from the web browser, no servers involved.
+Share the final URL and the other person will be able to see it too, directly from the web browser (thanks to the *magical* `#`), no servers involved.
 
 
 ## Extras
@@ -32,6 +32,7 @@ Share the final URL and the other person will be able to see it too, directly fr
 * `&delay=300`: controls the amount of time (ms) you touch down to start a new rectangle, defaults to 300.
 * `&search=false`: enable/disable searchable text (mobile browsers seem to struggle with the big svg generated).
 * `#url=test.pdf`: you can also access files from your local server.
+* `&cdata=...&cdata=...&cdata=...`: annotations created individually can be fused together by pasting multiple `cdata` fields on the same URL.
 
 It works with any pdf file as long as it's hosted in a place that allows Cross-Origin Resource Sharing (CORS).
 
@@ -39,4 +40,3 @@ It works with any pdf file as long as it's hosted in a place that allows Cross-O
 1. Test it using other browsers, operating systems, etc... because I only tested on Chrome-Linux and Safari-iOS.
 2. Solve the problems with the touch interface when zooming in/out.
 3. Improve the code because it's a terrible mess!
-4. ~~Currently, although the server doesn't need the information, the URL is sending it. I need to find a way to keep the info only for the client...~~: Solved by replacing the `?` by `#` in the URL ([thanks to stackoverflow](https://stackoverflow.com/a/68170088)).
