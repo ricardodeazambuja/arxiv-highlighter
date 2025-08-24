@@ -231,7 +231,7 @@ getFromUrl(){
     this.URL = urlParams.get('url');
     if (this.URL){
         if (this.URL.search("arxiv.org")!=-1 && this.URL.search("abs")!=-1){
-            this.pdfURL = this.URL.replace("abs","pdf")+".pdf";
+            this.pdfURL = this.URL.replace("abs","pdf");
         } else {
             this.pdfURL = this.URL;
         }
